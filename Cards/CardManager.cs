@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using UnityEngine.UI;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CardManager : MonoBehaviour
 {
@@ -8,8 +8,7 @@ public class CardManager : MonoBehaviour
     public GridLayoutGroup gridLayoutGroup;
     public GameObject cardUIPrefab;
     public List<Card> cardList;  // Все карты
-    public List<Card> playerCards;  // Карты игрока
-    public List<Card> enemyCards;   // Карты врага
+
 
     private void Start()
     {
@@ -17,119 +16,75 @@ public class CardManager : MonoBehaviour
 
         if (cardList == null || cardList.Count == 0)
         {
-            InitializeCardList();  // Заполняем колоду карт
+            cardList = new List<Card>();  // Инициализируем пустой список карт
         }
 
         SpawnCardsInGrid();
-        CategorizeDistributedCards();  // Категоризация карт после их раздачи
     }
 
-    // Метод для инициализации карт в колоде
-    void InitializeCardList()
-    {
-        cardList = new List<Card>();
-
-        // Генерируем 20 карт с рандомными значениями (чтобы было достаточно для игры)
-        for (int i = 0; i < 20; i++)
-        {
-            GameObject cardObject = Instantiate(cardUIPrefab);
-            Card newCard = cardObject.GetComponent<Card>();
-
-            // Устанавливаем случайные значения для карты
-            newCard.leftValue = Random.Range(1, 10);
-            newCard.rightValue = Random.Range(1, 10);
-            newCard.topValue = Random.Range(1, 10);
-            newCard.bottomValue = Random.Range(1, 10);
-
-            // Устанавливаем владельца карты (например, чередуем между игроком и врагом)
-            newCard.isPlayer1Card = (i % 2 == 0);  // Чередуем карты между игроком и врагом
-
-            // Добавляем карту в список
-            cardList.Add(newCard);
-        }
-
-        Debug.Log($"Инициализировано {cardList.Count} карт.");
-    }
-
+    // Метод для спауна карт на UI
     void SpawnCardsInGrid()
     {
-        if (cardList == null || cardList.Count == 0)
-        {
-            Debug.LogWarning("Card list is empty!");
-            return;
-        }
-
-        for (int i = 0; i < cardList.Count; i++)
+        // Спавним ровно 9 карт
+        for (int i = 0; i < 9; i++)
         {
             SpawnCard(i);
         }
+
+        Debug.Log($"Создано и добавлено {cardList.Count} карт в лист.");
     }
 
     void SpawnCard(int index)
     {
+        // Создаем объект карты и размещаем на UI
         GameObject cardObject = Instantiate(cardUIPrefab, gridLayoutGroup.transform);
 
+        // Получаем компонент Card и присваиваем случайные значения
         Card cardDisplay = cardObject.GetComponent<Card>();
+
         if (cardDisplay != null)
         {
+            // Задаем случайные значения для карты
+            cardDisplay.leftValue = Random.Range(1, 10);
+            cardDisplay.rightValue = Random.Range(1, 10);
+            cardDisplay.topValue = Random.Range(1, 10);
+            cardDisplay.bottomValue = Random.Range(1, 10);
+
+            // Добавляем карту в список после ее спауна на UI
+            cardList.Add(cardDisplay);
+
+            // Отображаем карту на UI
             cardDisplay.SetCard();
         }
         else
         {
-            Debug.LogWarning("CardDisplay component missing on card prefab!");
+            Debug.LogWarning("Компонент Card не найден на префабе карты!");
         }
     }
-
-    // Метод для категоризации карт после раздачи
-    void CategorizeDistributedCards()
+    /*
+    // Метод для удаления карты из колоды и UI
+    public void RemoveCardFromDeck(Card card)
     {
-        playerCards = new List<Card>();
-        enemyCards = new List<Card>();
-
-        foreach (Transform child in gridLayoutGroup.transform)
+        if (cardList.Contains(card))
         {
-            Card card = child.GetComponent<Card>();
-            if (card != null)
+            // Удаляем карту из списка
+            cardList.Remove(card);
+            Debug.Log($"Карта удалена. Осталось карт: {cardList.Count}");
+
+            // Уничтожаем объект карты из UI
+            Destroy(card.gameObject);
+
+            // Проверяем, если карт больше не осталось, вызываем событие
+            if (cardList.Count == 0)
             {
-                // Разделяем карты по владельцу
-                if (card.isPlayer1Card)
-                {
-                    playerCards.Add(card);
-                }
-                else
-                {
-                    enemyCards.Add(card);
-                }
+                    Debug.Log("Колода пуста! Событие OnDeckEmpty вызвано.");
+                    OnDeckEmpty.Invoke();
+                
             }
         }
-
-        // Логирование карт для игрока и врага
-        Debug.Log($"Игроку выдано {playerCards.Count} карт.");
-        Debug.Log($"Врагу выдано {enemyCards.Count} карт.");
-
-        foreach (Card playerCard in playerCards)
+        else
         {
-            Debug.Log($"Карта игрока: L:{playerCard.leftValue}, R:{playerCard.rightValue}, T:{playerCard.topValue}, B:{playerCard.bottomValue}");
+            Debug.LogWarning("Карта не найдена в колоде!");
         }
-
-        foreach (Card enemyCard in enemyCards)
-        {
-            Debug.Log($"Карта врага: L:{enemyCard.leftValue}, R:{enemyCard.rightValue}, T:{enemyCard.topValue}, B:{enemyCard.bottomValue}");
-        }
-    }
-
-    // Новый метод для выдачи карты врагу
-    public Card GetEnemyCard()
-    {
-        if (enemyCards.Count > 0)
-        {
-            Card card = enemyCards[enemyCards.Count - 1];
-            enemyCards.RemoveAt(enemyCards.Count - 1);
-
-            Debug.Log($"Врагу выдана карта: L:{card.leftValue}, R:{card.rightValue}, T:{card.topValue}, B:{card.bottomValue}. Осталось {enemyCards.Count} карт.");
-            return card;
-        }
-        Debug.LogWarning("No more cards available for enemy.");
-        return null;
-    }
+    }*/
 }
