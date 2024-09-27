@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -10,12 +8,16 @@ public class GridCellForPlayerVsPlayer : MonoBehaviour, IDropHandler
     public GridCellForPlayerVsPlayer rightNeighbor;
     public GridCellForPlayerVsPlayer topNeighbor;
     public GridCellForPlayerVsPlayer bottomNeighbor;
+    //public CardManager cardManager;
 
     public Vector2Int gridPosition;
     public Card currentCard;
     private Color customRed;
     private Color customGreen;
 
+    public delegate void CounterForPlayer();
+    public static event CounterForPlayer OnCardTookByPlayer1;
+    public static event CounterForPlayer OnCardTookByPlayer2;
 
     void Start()
     {
@@ -63,132 +65,113 @@ public class GridCellForPlayerVsPlayer : MonoBehaviour, IDropHandler
             CompareWithNeighbors(draggableCard.card);
         }
     }
+
     public void CompareWithNeighbors(Card newCard)
     {
-        //с левой картой
+        // С левой картой
         if (leftNeighbor != null && leftNeighbor.HasCard())
         {
             Card leftCard = leftNeighbor.GetCard();
-            Debug.Log($"Comparing right value of new card: {newCard.leftValue} vs left value of neighbor card: {leftCard.rightValue}");
-            if (!currentCard.isPlayer1Card && newCard.leftValue > leftCard.rightValue)
+            if (CanBeatCard(newCard, leftCard, newCard.leftValue, leftCard.rightValue))
             {
-                Debug.Log("Changing player card color to green.");
-                leftNeighbor.ChangeCardColor(customGreen); // Окрашиваем карту игрока
-            }
-            else if (currentCard.isPlayer1Card && newCard.leftValue > leftCard.rightValue)
-            {
-                leftNeighbor.ChangeCardColor(customRed);
+                if (!newCard.isPlayer1Card)
+                {
+                    leftNeighbor.ChangeCardColor(customGreen);
+                    OnCardTookByPlayer2?.Invoke();
+                }
+                else
+                {
+                    leftNeighbor.ChangeCardColor(customRed);
+                    OnCardTookByPlayer1?.Invoke();
+                }
             }
         }
-        //с правой картой
+
+        // С правой картой
         if (rightNeighbor != null && rightNeighbor.HasCard())
         {
             Card rightCard = rightNeighbor.GetCard();
-            Debug.Log($"Comparing left value of new card: {newCard.rightValue} vs right value of neighbor card: {rightCard.leftValue}");
-            if (!currentCard.isPlayer1Card && newCard.rightValue > rightCard.leftValue)
+            if (CanBeatCard(newCard, rightCard, newCard.rightValue, rightCard.leftValue))
             {
-                Debug.Log("Changing player card color to green.");
-                rightNeighbor.ChangeCardColor(customGreen); // Окрашиваем карту игрока
-            }
-            else if (currentCard.isPlayer1Card && newCard.rightValue > rightCard.leftValue)
-            {
-                rightNeighbor.ChangeCardColor(customRed);
+                if (!newCard.isPlayer1Card)
+                {
+                    rightNeighbor.ChangeCardColor(customGreen);
+                    OnCardTookByPlayer2?.Invoke();
+                }
+                else
+                {
+                    rightNeighbor.ChangeCardColor(customRed);
+                    OnCardTookByPlayer1?.Invoke();
+                }
             }
         }
-        //с верхней картой
+
+        // С верхней картой
         if (topNeighbor != null && topNeighbor.HasCard())
         {
             Card topCard = topNeighbor.GetCard();
-            Debug.Log($"Comparing bottom value of new card: {newCard.bottomValue}   vs top value of neighbor card:   {topCard.topValue}");
-            if (!currentCard.isPlayer1Card && newCard.bottomValue > topCard.topValue)
+            if (CanBeatCard(newCard, topCard, newCard.bottomValue, topCard.topValue))
             {
-                Debug.Log("Changing player card color to green.");
-                topNeighbor.ChangeCardColor(customGreen); // Окрашиваем карту игрока
-            }
-            else if (currentCard.isPlayer1Card && newCard.bottomValue > topCard.topValue)
-            {
-                topNeighbor.ChangeCardColor(customRed);
+                if (!newCard.isPlayer1Card)
+                {
+                    topNeighbor.ChangeCardColor(customGreen);
+                    OnCardTookByPlayer2?.Invoke();
+                }
+                else
+                {
+                    topNeighbor.ChangeCardColor(customRed);
+                    OnCardTookByPlayer1?.Invoke();
+                }
             }
         }
-        //с нижней картой
+
+        // С нижней картой
         if (bottomNeighbor != null && bottomNeighbor.HasCard())
         {
             Card bottomCard = bottomNeighbor.GetCard();
-            Debug.Log($"Comparing top value of new card: {newCard.topValue} vs bottom value of neighbor card: {bottomCard.bottomValue}");
-            if (!currentCard.isPlayer1Card && newCard.topValue > bottomCard.bottomValue)
+            if (CanBeatCard(newCard, bottomCard, newCard.topValue, bottomCard.bottomValue))
             {
-                Debug.Log("Changing player card color to green.");
-                bottomNeighbor.ChangeCardColor(customGreen); // Окрашиваем карту игрока
-            }
-            else if (currentCard.isPlayer1Card && newCard.topValue > bottomCard.bottomValue)
-            {
-                bottomNeighbor.ChangeCardColor(customRed);
+                if (!newCard.isPlayer1Card)
+                {
+                    bottomNeighbor.ChangeCardColor(customGreen);
+                    OnCardTookByPlayer2?.Invoke();
+                }
+                else
+                {
+                    bottomNeighbor.ChangeCardColor(customRed);
+                    OnCardTookByPlayer1?.Invoke();
+                }
             }
         }
     }
-    public void CompareWithNeighborsAI(CardsForTakeCardsAndCollection newCard)
+
+    // Метод для проверки, может ли новая карта побить соседнюю
+    private bool CanBeatCard(Card newCard, Card neighborCard, int newCardValue, int neighborCardValue)
     {
-        //с левой картой
-        if (leftNeighbor != null && leftNeighbor.HasCard())
+        // Если карта была побеждена (изменила цвет), разрешаем перебить, даже если карта того же игрока
+        bool wasBeaten = IsCardColored(neighborCard);
+
+        // Если карта того же игрока и не была побеждена — не перебиваем
+        if (newCard.isPlayer1Card == neighborCard.isPlayer1Card && !wasBeaten)
         {
-            Card leftCard = leftNeighbor.GetCard();
-            Debug.Log($"Comparing right value of new card: {newCard.leftValue} vs left value of neighbor card: {leftCard.rightValue}");
-            if (!currentCard.isPlayer1Card && newCard.leftValue > leftCard.rightValue)
-            {
-                Debug.Log("Changing player card color to green.");
-                leftNeighbor.ChangeCardColor(customGreen); // Окрашиваем карту игрока
-            }
-            else if (currentCard.isPlayer1Card && newCard.leftValue > leftCard.rightValue)
-            {
-                leftNeighbor.ChangeCardColor(customRed);
-            }
+            return false;
         }
-        //с правой картой
-        if (rightNeighbor != null && rightNeighbor.HasCard())
-        {
-            Card rightCard = rightNeighbor.GetCard();
-            Debug.Log($"Comparing left value of new card: {newCard.rightValue} vs right value of neighbor card: {rightCard.leftValue}");
-            if (!currentCard.isPlayer1Card && newCard.rightValue > rightCard.leftValue)
-            {
-                Debug.Log("Changing player card color to green.");
-                rightNeighbor.ChangeCardColor(customGreen); // Окрашиваем карту игрока
-            }
-            else if (currentCard.isPlayer1Card && newCard.rightValue > rightCard.leftValue)
-            {
-                rightNeighbor.ChangeCardColor(customRed);
-            }
-        }
-        //с верхней картой
-        if (topNeighbor != null && topNeighbor.HasCard())
-        {
-            Card topCard = topNeighbor.GetCard();
-            Debug.Log($"Comparing bottom value of new card: {newCard.bottomValue}   vs top value of neighbor card:   {topCard.topValue}");
-            if (!currentCard.isPlayer1Card && newCard.bottomValue > topCard.topValue)
-            {
-                Debug.Log("Changing player card color to green.");
-                topNeighbor.ChangeCardColor(customGreen); // Окрашиваем карту игрока
-            }
-            else if (currentCard.isPlayer1Card && newCard.bottomValue > topCard.topValue)
-            {
-                topNeighbor.ChangeCardColor(customRed);
-            }
-        }
-        //с нижней картой
-        if (bottomNeighbor != null && bottomNeighbor.HasCard())
-        {
-            Card bottomCard = bottomNeighbor.GetCard();
-            Debug.Log($"Comparing top value of new card: {newCard.topValue} vs bottom value of neighbor card: {bottomCard.bottomValue}");
-            if (!currentCard.isPlayer1Card && newCard.topValue > bottomCard.bottomValue)
-            {
-                Debug.Log("Changing player card color to green.");
-                bottomNeighbor.ChangeCardColor(customGreen); // Окрашиваем карту игрока
-            }
-            else if (currentCard.isPlayer1Card && newCard.topValue > bottomCard.bottomValue)
-            {
-                bottomNeighbor.ChangeCardColor(customRed);
-            }
-        }
+
+        // Проверяем значения карт, можно ли перебить
+        return newCardValue > neighborCardValue;
     }
+
+    // Проверяет, была ли карта уже побеждена (окрашена)
+    private bool IsCardColored(Card neighborCard)
+    {
+        Image neighborCardImage = neighborCard.GetComponent<Image>();
+        if (neighborCardImage != null)
+        {
+            return neighborCardImage.color == customRed || neighborCardImage.color == customGreen;
+        }
+        return false;
+    }
+
     public bool HasCard()
     {
         return currentCard != null;

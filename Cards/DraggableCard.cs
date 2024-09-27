@@ -87,6 +87,8 @@ public class DraggableCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             Debug.Log("Не можете перетаскивать карту другого игрока.");
             return;
         }
+
+        // Удаляем карту из списка в CardManager
     }
 
     public void LockCard()

@@ -15,7 +15,7 @@ public class GridCell : MonoBehaviour, IDropHandler
     private Color customRed;
     private Color customGreen;
 
-    public delegate void CardPlacedHandler(CardsForTakeCardsAndCollection card, GridCell cell, Vector2Int position);
+    public delegate void CardPlacedHandler(Card card, GridCell cell, Vector2Int position);
     public static event CardPlacedHandler OnCardPlaced;
 
     void Start()
@@ -31,208 +31,137 @@ public class GridCell : MonoBehaviour, IDropHandler
         }
     }
 
-    public void OnDrop(PointerEventData eventData)
+       public void OnDrop(PointerEventData eventData)
     {
         GameObject droppedObject = eventData.pointerDrag;
 
-        if (droppedObject != null && droppedObject.GetComponent<DraggableBattleCard>())
+        if (droppedObject != null && droppedObject.GetComponent<DraggableCard>())
         {
-            DraggableBattleCard draggableCard = droppedObject.GetComponent<DraggableBattleCard>();
+            DraggableCard draggableCard = droppedObject.GetComponent<DraggableCard>();
 
-            // Проверка на то, что карта уже размещена
-            if (draggableCard.IsLocked())
+            // Проверяем, принадлежит ли карта активному игроку
+            if ((draggableCard.card.isPlayer1Card && !ChangeTurn.IsPlayer1Turn) ||
+                (!draggableCard.card.isPlayer1Card && ChangeTurn.IsPlayer1Turn))
             {
-                Debug.LogWarning("Эта карта уже размещена и не может быть перемещена.");
+                Debug.LogWarning("Нельзя сбросить карту другого игрока.");
                 return;
             }
 
-            // Проверка на то, что в ячейке нет карты
-            if (HasCard())
-            {
-                Debug.LogWarning("Ячейка уже занята, невозможно разместить карту.");
-                return;
-            }
-
-            // Логика размещения карты
+            // Перемещаем карту в эту ячейку
             droppedObject.transform.SetParent(transform);
             droppedObject.transform.localPosition = Vector3.zero;
 
-            currentCardsForTakeCardsAndCollection = draggableCard.card;
+            // Обновляем состояние ячейки, устанавливаем текущую карту
+            currentCard = draggableCard.card;
 
+            // Блокируем карту и меняем ход
             draggableCard.LockCard();
             ChangeTurn.Instance.SwitchTurn(gridPosition);
 
+            // Сравниваем новую карту с соседями
             CompareWithNeighbors(draggableCard.card);
 
-            OnCardPlaced?.Invoke(currentCardsForTakeCardsAndCollection, this, gridPosition);
+            OnCardPlaced?.Invoke(currentCard, this, gridPosition);
         }
     }
 
-    public void CompareWithNeighbors(CardsForTakeCardsAndCollection newCard)
-    {
-        CompareNeighbor(leftNeighbor, newCard, "left");
-        CompareNeighbor(rightNeighbor, newCard, "right");
-        CompareNeighbor(topNeighbor, newCard, "top");
-        CompareNeighbor(bottomNeighbor, newCard, "bottom");
+    public void CompareWithNeighbors(Card newCard)
+    {        
+            //с левой картой
+            if (leftNeighbor != null && leftNeighbor.HasCard())
+            {
+                Card leftCard = leftNeighbor.GetCard();
+                Debug.Log($"Comparing right value of new card: {newCard.leftValue} vs left value of neighbor card: {leftCard.rightValue}");
+                if (!currentCard.isPlayer1Card && newCard.leftValue > leftCard.rightValue)
+                {
+                    Debug.Log("Changing player card color to green.");
+                    leftNeighbor.ChangeCardColor(customGreen); // Окрашиваем карту игрока
+                }
+                else if (currentCard.isPlayer1Card && newCard.leftValue > leftCard.rightValue)
+                {
+                    leftNeighbor.ChangeCardColor(customRed);
+                }
+
+            }
+            //с правой картой
+            if (rightNeighbor != null && rightNeighbor.HasCard())
+            {
+                Card rightCard = rightNeighbor.GetCard();
+                Debug.Log($"Comparing left value of new card: {newCard.rightValue} vs right value of neighbor card: {rightCard.leftValue}");
+                if (!currentCard.isPlayer1Card && newCard.rightValue > rightCard.leftValue)
+                {
+                    Debug.Log("Changing player card color to green.");
+                    rightNeighbor.ChangeCardColor(customGreen); // Окрашиваем карту игрока
+                }
+                else if (currentCard.isPlayer1Card && newCard.rightValue > rightCard.leftValue)
+                {
+                    rightNeighbor.ChangeCardColor(customRed);
+                }
+            }
+            //с верхней картой
+            if (topNeighbor != null && topNeighbor.HasCard())
+            {
+                Card topCard = topNeighbor.GetCard();
+                Debug.Log($"Comparing bottom value of new card: {newCard.bottomValue}   vs top value of neighbor card:   {topCard.topValue}");
+                if (!currentCard.isPlayer1Card && newCard.bottomValue > topCard.topValue)
+                {
+                    Debug.Log("Changing player card color to green.");
+                    topNeighbor.ChangeCardColor(customGreen); // Окрашиваем карту игрока
+                }
+                else if (currentCard.isPlayer1Card && newCard.bottomValue > topCard.topValue)
+                {
+                    topNeighbor.ChangeCardColor(customRed);
+                }
+            }
+            //с нижней картой
+            if (bottomNeighbor != null && bottomNeighbor.HasCard())
+            {
+                Card bottomCard = bottomNeighbor.GetCard();
+                Debug.Log($"Comparing top value of new card: {newCard.topValue} vs bottom value of neighbor card: {bottomCard.bottomValue}");
+                if (!currentCard.isPlayer1Card && newCard.topValue > bottomCard.bottomValue)
+                {
+                    Debug.Log("Changing player card color to green.");
+                    bottomNeighbor.ChangeCardColor(customGreen); // Окрашиваем карту игрока
+                }
+                else if (currentCard.isPlayer1Card && newCard.topValue > bottomCard.bottomValue)
+                {
+                    bottomNeighbor.ChangeCardColor(customRed);
+                }
+            }        
     }
-
-    private void CompareNeighbor(GridCell neighbor, CardsForTakeCardsAndCollection newCard, string direction)
-    {
-        if (neighbor != null && neighbor.HasCard())
-        {
-            // Проверяем наличие карт обоих типов
-            CardsForTakeCardsAndCollection neighborPlayerCard = neighbor.currentCardsForTakeCardsAndCollection;
-            Card neighborEnemyCard = neighbor.currentCard;
-
-            // Сравнение с картой игрока
-            if (neighborPlayerCard != null)
-            {
-                CompareCardValues(newCard, neighborPlayerCard, direction);
-            }
-
-            // Сравнение с картой врага
-            if (neighborEnemyCard != null)
-            {
-                CompareCardValues(newCard, neighborEnemyCard, direction);
-            }
-        }
-    }
-    //
-    private void CompareCardValues(CardsForTakeCardsAndCollection newCard, CardsForTakeCardsAndCollection neighborCard, string direction)
-    {
-        if (direction == "left")
-        {
-            Debug.Log($"Comparing right value of new card: {newCard.leftValue} vs left value of neighbor card: {neighborCard.rightValue}");
-            if (!newCard.isPlayer1Card && newCard.leftValue < neighborCard.rightValue)
-            {
-                ChangeCardColor(customGreen);
-            }
-            else if (newCard.isPlayer1Card && newCard.leftValue < neighborCard.rightValue)
-            {
-                ChangeCardColor(customRed);
-            }
-        }
-        // Аналогично для других направлений
-        if (direction == "right")
-        {
-            Debug.Log($"Comparing left value of new card: {newCard.rightValue} vs right value of neighbor card: {neighborCard.leftValue}");
-            if (!newCard.isPlayer1Card && newCard.rightValue < neighborCard.leftValue)
-            {
-                ChangeCardColor(customGreen);
-            }
-            else if (newCard.isPlayer1Card && newCard.rightValue < neighborCard.leftValue)
-            {
-                ChangeCardColor(customRed);
-            }
-        }
-        if (direction == "top")
-        {
-            Debug.Log($"Comparing bottom value of new card: {newCard.bottomValue} vs top value of neighbor card: {neighborCard.topValue}");
-            if (!newCard.isPlayer1Card && newCard.bottomValue < neighborCard.topValue)
-            {
-                ChangeCardColor(customGreen);
-            }
-            else if (newCard.isPlayer1Card && newCard.bottomValue < neighborCard.topValue)
-            {
-                ChangeCardColor(customRed);
-            }
-        }
-        if (direction == "bottom")
-        {
-            Debug.Log($"Comparing top value of new card: {newCard.topValue} vs bottom value of neighbor card: {neighborCard.bottomValue}");
-            if (!newCard.isPlayer1Card && newCard.topValue < neighborCard.bottomValue)
-            {
-                ChangeCardColor(customGreen);
-            }
-            else if (newCard.isPlayer1Card && newCard.topValue < neighborCard.bottomValue)
-            {
-                ChangeCardColor(customRed);
-            }
-        }
-    }
-
-    private void CompareCardValues(CardsForTakeCardsAndCollection newCard, Card neighborCard, string direction)
-    {
-        if (direction == "left")
-        {
-            Debug.Log($"Comparing right value of new card: {newCard.leftValue} vs left value of enemy card: {neighborCard.rightValue}");
-            if (!newCard.isPlayer1Card && newCard.leftValue < neighborCard.rightValue)
-            {
-                ChangeCardColor(customGreen);
-            }
-            else if (newCard.isPlayer1Card && newCard.leftValue < neighborCard.rightValue)
-            {
-                ChangeCardColor(customRed);
-            }
-        }
-        // Аналогично для других направлений
-        if (direction == "right")
-        {
-            Debug.Log($"Comparing left value of new card: {newCard.rightValue} vs right value of enemy card: {neighborCard.leftValue}");
-            if (!newCard.isPlayer1Card && newCard.rightValue < neighborCard.leftValue)
-            {
-                ChangeCardColor(customGreen);
-            }
-            else if (newCard.isPlayer1Card && newCard.rightValue < neighborCard.leftValue)
-            {
-                ChangeCardColor(customRed);
-            }
-        }
-        if (direction == "top")
-        {
-            Debug.Log($"Comparing bottom value of new card: {newCard.bottomValue} vs top value of enemy card: {neighborCard.topValue}");
-            if (!newCard.isPlayer1Card && newCard.bottomValue < neighborCard.topValue)
-            {
-                ChangeCardColor(customGreen);
-            }
-            else if (newCard.isPlayer1Card && newCard.bottomValue < neighborCard.topValue)
-            {
-                ChangeCardColor(customRed);
-            }
-        }
-        if (direction == "bottom")
-        {
-            Debug.Log($"Comparing top value of new card: {newCard.topValue} vs bottom value of enemy card: {neighborCard.bottomValue}");
-            if (!newCard.isPlayer1Card && newCard.topValue < neighborCard.bottomValue)
-            {
-                ChangeCardColor(customGreen);
-            }
-            else if (newCard.isPlayer1Card && newCard.topValue < neighborCard.bottomValue)
-            {
-                ChangeCardColor(customRed);
-            }
-        }
-    }
-
-    public bool HasEnemyCard()
-    {
-        return currentCard != null && !currentCard.isPlayer1Card;
-    }
-
+    
     public bool HasCard()
     {
-        return currentCardsForTakeCardsAndCollection != null || currentCard != null;
+        return currentCard != null;
     }
 
     public Card GetCard()
     {
         return currentCard;
     }
-    
-    private void ChangeCardColor(Color color)
+
+    public void ChangeCardColor(Color color)
     {
-        // Предположим, что у карты есть Image компонент
-        Image cardImage = GetComponentInChildren<Image>();
-        if (cardImage != null)
+        if (HasCard())
         {
-            Debug.Log($"Изменение цвета карты на {color}");
-            cardImage.color = color;  // Устанавливаем новый цвет
+            Image cardImage = transform.GetChild(0).GetComponent<Image>();
+            if (cardImage != null)
+            {
+                Debug.Log($"Changing card color to {color}.");
+                cardImage.color = color; // Изменяем цвет карты
+                cardImage.SetAllDirty(); // Принудительное обновление цвета
+            }
+            else
+            {
+                Debug.LogError("Image component not found on card!");
+            }
         }
         else
         {
-            Debug.LogError("Image component not found on card!");
+            Debug.LogError("No card found in this cell!");
         }
     }
+
 }
 
 

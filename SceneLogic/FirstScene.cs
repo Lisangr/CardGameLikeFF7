@@ -1,4 +1,35 @@
-using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using YG;
+
+public class StartGame : MonoBehaviour
+{
+    public GameObject settingsPanel;
+    private void Awake()
+    {
+        OnPanelClosePanel();
+    }
+    public void OnPanelClosePanel()
+    {
+        if (settingsPanel != null)
+        {
+            settingsPanel.SetActive(false);
+        }
+    }
+    public void OnClickStart(string scene)
+    {
+        YandexGame.FullscreenShow();
+        SceneManager.LoadScene(scene, LoadSceneMode.Single);
+    }
+    public void OnPanelClick()
+    { 
+        settingsPanel.SetActive(true);
+    }
+}
+
+
+/*
+ * using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -112,7 +143,7 @@ public class StartGame : MonoBehaviour
 }
 
 
-
+*/
 /*
 // —охран€ем текущее состо€ние карт, которые наход€тс€ на €чейках дл€ бо€
 private void SaveBattleCards()
