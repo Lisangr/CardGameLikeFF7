@@ -18,7 +18,12 @@ public class StartGame : MonoBehaviour
     }
     public void OnClickStart(string scene)
     {
-        YandexGame.FullscreenShow();
+        /*AudioSource audioSource = FindAnyObjectByType<AudioSource>().GetComponent<AudioSource>();
+        if (audioSource != null) { Debug.Log("юсдхнянпя мюидем ярюбкч гбсй мю оюсгс"); }
+        Time.timeScale = 0f;
+        audioSource.Pause();*/
+
+        //YandexGame.FullscreenShow();
         SceneManager.LoadScene(scene, LoadSceneMode.Single);
     }
     public void OnPanelClick()

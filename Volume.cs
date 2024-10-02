@@ -32,7 +32,6 @@ public class Volume : MonoBehaviour
             m_VolumeSlider.onValueChanged.AddListener(OnSliderChanged);
         }
     }
-
     void Update()
     {
         // Сохраняем громкость и состояние звука
@@ -63,5 +62,16 @@ public class Volume : MonoBehaviour
         {
             m_AudioSource.volume = m_Volume;  // Если звук включен, применяем сохраненную громкость
         }
+    }
+
+    public void StopMusicBeforeAD()
+    {
+        m_AudioSource.volume = 0f;
+        Time.timeScale = 0f;
+    }
+    public void StartMusicAfterAD()
+    {
+        m_AudioSource.volume = 1f;
+        Time.timeScale = 1f;
     }
 }

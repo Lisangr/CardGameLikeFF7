@@ -36,6 +36,13 @@ public class GridCellForPlayerVsPlayer : MonoBehaviour, IDropHandler
 
     public void OnDrop(PointerEventData eventData)
     {
+        // Проверяем, что в ячейке еще нет карты
+        if (currentCard != null)
+        {
+            Debug.LogWarning("Ячейка уже занята картой.");
+            return;
+        }
+
         GameObject droppedObject = eventData.pointerDrag;
 
         if (droppedObject != null && droppedObject.GetComponent<DraggableCard>())
@@ -65,6 +72,7 @@ public class GridCellForPlayerVsPlayer : MonoBehaviour, IDropHandler
             CompareWithNeighbors(draggableCard.card);
         }
     }
+
 
     public void CompareWithNeighbors(Card newCard)
     {
