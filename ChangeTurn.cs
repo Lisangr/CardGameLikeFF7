@@ -50,12 +50,16 @@ public class ChangeTurn : MonoBehaviour
     {
         IsPlayer1Turn = isPlayer1;
 
+        // Устанавливаем цвета с 10% прозрачности
+        Color player1Color = new Color(0, 1, 0, 0.05f); // Зеленый с 10% прозрачности
+        Color player2Color = new Color(1, 0, 0, 0.05f); // Красный с 10% прозрачности
+
         if (isPlayer1)
         {
             turnPlayer1.gameObject.SetActive(true);
             turnPlayer2.gameObject.SetActive(false);
-            player1BG.color = Color.green;
-            player2BG.color = Color.red;
+            player1BG.color = player1Color; // Установка зеленого с 10% прозрачности
+            player2BG.color = player2Color; // Установка красного с 10% прозрачности
             SetCardInteractability(player1Cards, true);
             SetCardInteractability(player2Cards, false);
         }
@@ -63,13 +67,12 @@ public class ChangeTurn : MonoBehaviour
         {
             turnPlayer1.gameObject.SetActive(false);
             turnPlayer2.gameObject.SetActive(true);
-            player1BG.color = Color.red;
-            player2BG.color = Color.green;
+            player1BG.color = player2Color; // Установка красного с 10% прозрачности
+            player2BG.color = player1Color; // Установка зеленого с 10% прозрачности
             SetCardInteractability(player1Cards, false);
             SetCardInteractability(player2Cards, true);
         }
     }
-
     // Метод для переключения хода
     public void SwitchTurn(Vector2Int playerPosition)
     {
