@@ -11,25 +11,33 @@ public class AIGridCell : MonoBehaviour, IDropHandler
 
     public Vector2Int gridPosition;
     public Card currentCard;
-    private Color customRed;
-    private Color customGreen;
+
+    // Цвета для лучшей визуализации
+    private Color playerColor;     // Голубой для карт игрока
+    private Color aiColor;         // Зеленый для карт ИИ
+    private Color neutralColor;    // Белый для нейтральных карт
 
     // Добавляем аналогичные события для подсчета захваченных карт
     public delegate void CounterForPlayer();
     public static event CounterForPlayer OnCardTookByPlayer1;
     public static event CounterForPlayer OnCardTookByPlayer2;
+
     void Start()
     {
-        // Инициализация цветов
-        if (!ColorUtility.TryParseHtmlString("#FF9494", out customRed))
+        // Устанавливаем новые, более наглядные цвета
+        if (!ColorUtility.TryParseHtmlString("#4FC3F7", out playerColor))  // Голубой для игрока
         {
-            Debug.LogError("Invalid color string for #FF9494");
+            Debug.LogError("Invalid color string for #4FC3F7");
+            playerColor = Color.blue;
         }
 
-        if (!ColorUtility.TryParseHtmlString("#A3FF86", out customGreen))
+        if (!ColorUtility.TryParseHtmlString("#81C784", out aiColor))  // Зеленый для ИИ
         {
-            Debug.LogError("Invalid color string for #A3FF86");
+            Debug.LogError("Invalid color string for #81C784");
+            aiColor = Color.green;
         }
+
+        neutralColor = Color.white;  // Белый для нейтральных карт
     }
 
     public void OnDrop(PointerEventData eventData)
@@ -62,6 +70,9 @@ public class AIGridCell : MonoBehaviour, IDropHandler
             // Сохраняем ссылку на карту
             currentCard = draggableCard.card;
 
+            // Устанавливаем начальный цвет карты (нейтральный)
+            SetInitialCardColor(draggableCard.card);
+
             // Блокируем карту и меняем ход
             draggableCard.LockCard();
             ChangeTurn.Instance.SwitchTurn(gridPosition);
@@ -70,23 +81,36 @@ public class AIGridCell : MonoBehaviour, IDropHandler
             CompareWithNeighbors(draggableCard.card);
         }
     }
+
+    // Новый метод для установки начального цвета карты
+    private void SetInitialCardColor(Card card)
+    {
+        Image cardImage = card.GetComponent<Image>();
+        if (cardImage != null)
+        {
+            cardImage.color = neutralColor; // Изначально карты нейтрального цвета
+        }
+    }
+
     public void CompareWithNeighbors(Card newCard)
     {
         // С левым соседом
         if (leftNeighbor != null && leftNeighbor.HasCard())
         {
             Card leftCard = leftNeighbor.GetCard();
+            // Для левого соседа мы сравниваем левое значение нашей карты с правым значением соседа
             if (CanBeatCard(newCard, leftCard, newCard.leftValue, leftCard.rightValue))
             {
                 if (!newCard.isPlayer1Card)
                 {
-                    leftNeighbor.ChangeCardColor(customGreen);
-                    OnCardTookByPlayer2?.Invoke(); // Вызываем событие
+                    leftNeighbor.ChangeCardColor(aiColor); // Зеленый для карт ИИ
+                    OnCardTookByPlayer2?.Invoke();
+                    Debug.Log($"ИИ побил карту слева своим значением {newCard.leftValue} > {leftCard.rightValue}");
                 }
                 else
                 {
-                    leftNeighbor.ChangeCardColor(customRed);
-                    OnCardTookByPlayer1?.Invoke(); // Вызываем событие
+                    leftNeighbor.ChangeCardColor(playerColor); // Голубой для карт игрока
+                    OnCardTookByPlayer1?.Invoke();
                 }
             }
         }
@@ -95,17 +119,19 @@ public class AIGridCell : MonoBehaviour, IDropHandler
         if (rightNeighbor != null && rightNeighbor.HasCard())
         {
             Card rightCard = rightNeighbor.GetCard();
+            // Для правого соседа мы сравниваем правое значение нашей карты с левым значением соседа
             if (CanBeatCard(newCard, rightCard, newCard.rightValue, rightCard.leftValue))
             {
                 if (!newCard.isPlayer1Card)
                 {
-                    rightNeighbor.ChangeCardColor(customGreen);
-                    OnCardTookByPlayer2?.Invoke(); // Вызываем событие
+                    rightNeighbor.ChangeCardColor(aiColor); // Зеленый для карт ИИ
+                    OnCardTookByPlayer2?.Invoke();
+                    Debug.Log($"ИИ побил карту справа своим значением {newCard.rightValue} > {rightCard.leftValue}");
                 }
                 else
                 {
-                    rightNeighbor.ChangeCardColor(customRed);
-                    OnCardTookByPlayer1?.Invoke(); // Вызываем событие
+                    rightNeighbor.ChangeCardColor(playerColor); // Голубой для карт игрока
+                    OnCardTookByPlayer1?.Invoke();
                 }
             }
         }
@@ -114,17 +140,19 @@ public class AIGridCell : MonoBehaviour, IDropHandler
         if (topNeighbor != null && topNeighbor.HasCard())
         {
             Card topCard = topNeighbor.GetCard();
-            if (CanBeatCard(newCard, topCard, newCard.topValue, topCard.bottomValue))
+            // ВАЖНО: Для верхнего соседа мы сравниваем верхнее значение нашей карты с нижним значением соседа
+            if (CanBeatCard(newCard, topCard, newCard.bottomValue, topCard.topValue))
             {
                 if (!newCard.isPlayer1Card)
                 {
-                    topNeighbor.ChangeCardColor(customGreen);
-                    OnCardTookByPlayer2?.Invoke(); // Вызываем событие
+                    topNeighbor.ChangeCardColor(aiColor); // Зеленый для карт ИИ
+                    OnCardTookByPlayer2?.Invoke();
+                    Debug.Log($"ИИ побил карту сверху своим значением {newCard.bottomValue} > {topCard.topValue}");
                 }
                 else
                 {
-                    topNeighbor.ChangeCardColor(customRed);
-                    OnCardTookByPlayer1?.Invoke(); // Вызываем событие
+                    topNeighbor.ChangeCardColor(playerColor); // Голубой для карт игрока
+                    OnCardTookByPlayer1?.Invoke();
                 }
             }
         }
@@ -133,17 +161,19 @@ public class AIGridCell : MonoBehaviour, IDropHandler
         if (bottomNeighbor != null && bottomNeighbor.HasCard())
         {
             Card bottomCard = bottomNeighbor.GetCard();
-            if (CanBeatCard(newCard, bottomCard, newCard.bottomValue, bottomCard.topValue))
+            // ВАЖНО: Для нижнего соседа мы сравниваем нижнее значение нашей карты с верхним значением соседа
+            if (CanBeatCard(newCard, bottomCard, newCard.topValue, bottomCard.bottomValue))
             {
                 if (!newCard.isPlayer1Card)
                 {
-                    bottomNeighbor.ChangeCardColor(customGreen);
-                    OnCardTookByPlayer2?.Invoke(); // Вызываем событие
+                    bottomNeighbor.ChangeCardColor(aiColor); // Зеленый для карт ИИ
+                    OnCardTookByPlayer2?.Invoke();
+                    Debug.Log($"ИИ побил карту снизу своим значением {newCard.topValue} > {bottomCard.bottomValue}");
                 }
                 else
                 {
-                    bottomNeighbor.ChangeCardColor(customRed);
-                    OnCardTookByPlayer1?.Invoke(); // Вызываем событие
+                    bottomNeighbor.ChangeCardColor(playerColor); // Голубой для карт игрока
+                    OnCardTookByPlayer1?.Invoke();
                 }
             }
         }
@@ -171,7 +201,7 @@ public class AIGridCell : MonoBehaviour, IDropHandler
         Image neighborCardImage = neighborCard.GetComponent<Image>();
         if (neighborCardImage != null)
         {
-            return neighborCardImage.color == customRed || neighborCardImage.color == customGreen;
+            return neighborCardImage.color == playerColor || neighborCardImage.color == aiColor;
         }
         return false;
     }
@@ -190,11 +220,21 @@ public class AIGridCell : MonoBehaviour, IDropHandler
     {
         if (HasCard())
         {
-            Image cardImage = transform.GetChild(0).GetComponent<Image>();
+            Image cardImage = currentCard.GetComponent<Image>();
             if (cardImage != null)
             {
                 Debug.Log($"Changing card color to {color}.");
-                cardImage.color = color;
+                cardImage.color = color; // Изменяем цвет карты
+
+                // Также обновляем isPlayer1Card свойство карты, чтобы отразить новую принадлежность
+                if (color == playerColor)
+                {
+                    currentCard.isPlayer1Card = true; // Теперь это карта игрока
+                }
+                else if (color == aiColor)
+                {
+                    currentCard.isPlayer1Card = false; // Теперь это карта ИИ
+                }
             }
             else
             {

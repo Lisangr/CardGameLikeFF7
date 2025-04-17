@@ -7,8 +7,8 @@ public class ChangeTurn : MonoBehaviour
 
     public Text turnPlayer1;
     public Text turnPlayer2;
-    public Image player1BG;
-    public Image player2BG;
+/*    public Image player1BG;
+    public Image player2BG;*/
 
     public CanvasGroup[] player1Cards;
     public CanvasGroup[] player2Cards;
@@ -62,8 +62,8 @@ public class ChangeTurn : MonoBehaviour
         {
             turnPlayer1.gameObject.SetActive(true);
             turnPlayer2.gameObject.SetActive(false);
-            player1BG.color = player1Color; // Установка зеленого с 10% прозрачности
-            player2BG.color = player2Color; // Установка красного с 10% прозрачности
+          /*  player1BG.color = player1Color; // Установка зеленого с 10% прозрачности
+            player2BG.color = player2Color; // Установка красного с 10% прозрачности*/
             SetCardInteractability(player1Cards, true);
             SetCardInteractability(player2Cards, false);
         }
@@ -71,8 +71,8 @@ public class ChangeTurn : MonoBehaviour
         {
             turnPlayer1.gameObject.SetActive(false);
             turnPlayer2.gameObject.SetActive(true);
-            player1BG.color = player2Color; // Установка красного с 10% прозрачности
-            player2BG.color = player1Color; // Установка зеленого с 10% прозрачности
+           /* player1BG.color = player2Color; // Установка красного с 10% прозрачности
+            player2BG.color = player1Color; // Установка зеленого с 10% прозрачности*/
             SetCardInteractability(player1Cards, false);
             SetCardInteractability(player2Cards, true);
         }
