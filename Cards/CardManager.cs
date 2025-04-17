@@ -7,84 +7,107 @@ public class CardManager : MonoBehaviour
     [Header("UI Grid Settings")]
     public GridLayoutGroup gridLayoutGroup;
     public GameObject cardUIPrefab;
-    public List<Card> cardList;  // Все карты
+    public List<Card> cardList;
 
+    private AIPlayer aiPlayer;
 
     private void Start()
     {
         gridLayoutGroup = GetComponent<GridLayoutGroup>();
+        aiPlayer = FindObjectOfType<AIPlayer>();
+
+        if (aiPlayer == null)
+        {
+            Debug.LogError("AIPlayer пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ!");
+        }
 
         if (cardList == null || cardList.Count == 0)
         {
-            cardList = new List<Card>();  // Инициализируем пустой список карт
+            cardList = new List<Card>();
         }
 
         SpawnCardsInGrid();
+
+        if (aiPlayer != null)
+        {
+            SpawnAICards();
+        }
     }
 
-    // Метод для спауна карт на UI
     void SpawnCardsInGrid()
     {
-        // Спавним ровно 9 карт
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ 9 пїЅпїЅпїЅпїЅ
         for (int i = 0; i < 9; i++)
         {
             SpawnCard(i);
         }
 
-        Debug.Log($"Создано и добавлено {cardList.Count} карт в лист.");
+        Debug.Log($"пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ {cardList.Count} пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ.");
     }
 
     void SpawnCard(int index)
     {
-        // Создаем объект карты и размещаем на UI
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ UI
         GameObject cardObject = Instantiate(cardUIPrefab, gridLayoutGroup.transform);
 
-        // Получаем компонент Card и присваиваем случайные значения
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Card пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         Card cardDisplay = cardObject.GetComponent<Card>();
 
         if (cardDisplay != null)
         {
-            // Задаем случайные значения для карты
+            // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             cardDisplay.leftValue = Random.Range(1, 10);
             cardDisplay.rightValue = Random.Range(1, 10);
             cardDisplay.topValue = Random.Range(1, 10);
             cardDisplay.bottomValue = Random.Range(1, 10);
+            cardDisplay.isPlayer1Card = true; // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 
-            // Добавляем карту в список после ее спауна на UI
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ UI
             cardList.Add(cardDisplay);
 
-            // Отображаем карту на UI
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ UI
             cardDisplay.SetCard();
         }
         else
         {
-            Debug.LogWarning("Компонент Card не найден на префабе карты!");
+            Debug.LogWarning("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Card пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ!");
         }
     }
-    /*
-    // Метод для удаления карты из колоды и UI
-    public void RemoveCardFromDeck(Card card)
+
+    // Р’ РјРµС‚РѕРґРµ SpawnAICards РІ CardManager
+void SpawnAICards()
+{
+    // РџРѕР»СѓС‡Р°РµРј СЌС‚Р°Р»РѕРЅРЅС‹Р№ СЂР°Р·РјРµСЂ Рё РјР°СЃС€С‚Р°Р± РёР· РєР°СЂС‚ РёРіСЂРѕРєР°
+    Vector3 playerCardScale = Vector3.one;
+    if (cardList.Count > 0)
     {
-        if (cardList.Contains(card))
-        {
-            // Удаляем карту из списка
-            cardList.Remove(card);
-            Debug.Log($"Карта удалена. Осталось карт: {cardList.Count}");
+        playerCardScale = cardList[0].transform.localScale;
+    }
+    
+    // РЎРѕР·РґР°РµРј 9 РєР°СЂС‚ РґР»СЏ AI
+    for (int i = 0; i < 9; i++)
+    {
+        GameObject cardObject = Instantiate(cardUIPrefab);
+        Card cardDisplay = cardObject.GetComponent<Card>();
 
-            // Уничтожаем объект карты из UI
-            Destroy(card.gameObject);
-
-            // Проверяем, если карт больше не осталось, вызываем событие
-            if (cardList.Count == 0)
-            {
-                    Debug.Log("Колода пуста! Событие OnDeckEmpty вызвано.");
-                    OnDeckEmpty.Invoke();
-                
-            }
-        }
-        else
+        if (cardDisplay != null)
         {
-            Debug.LogWarning("Карта не найдена в колоде!");
+            // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј С‚Р°РєРѕР№ Р¶Рµ РјР°СЃС€С‚Р°Р± РєР°Рє Сѓ РєР°СЂС‚ РёРіСЂРѕРєР°
+            cardObject.transform.localScale = playerCardScale;
+            
+            // Р—Р°РґР°РµРј СЃР»СѓС‡Р°Р№РЅС‹Рµ Р·РЅР°С‡РµРЅРёСЏ
+            cardDisplay.leftValue = Random.Range(1, 10);
+            cardDisplay.rightValue = Random.Range(1, 10);
+            cardDisplay.topValue = Random.Range(1, 10);
+            cardDisplay.bottomValue = Random.Range(1, 10);
+            cardDisplay.isPlayer1Card = false; // Р­С‚Рѕ РєР°СЂС‚Р° AI
+            
+            // РћР±РЅРѕРІР»СЏРµРј С‚РµРєСЃС‚ РЅР° РєР°СЂС‚Рµ
+            cardDisplay.SetCard();
+            
+            // Р”РѕР±Р°РІР»СЏРµРј РєР°СЂС‚Сѓ AI РёРіСЂРѕРєСѓ
+            aiPlayer.AddCard(cardDisplay);
         }
-    }*/
+    }
+}
 }

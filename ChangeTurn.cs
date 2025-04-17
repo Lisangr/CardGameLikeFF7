@@ -15,17 +15,21 @@ public class ChangeTurn : MonoBehaviour
 
     public static bool IsPlayer1Turn { get; private set; }
 
-    private Vector2Int lastPlayerPosition;  // Переменная для хранения последней позиции хода игрока
+    private Vector2Int lastPlayerPosition;  // РљРѕРѕСЂРґРёРЅР°С‚С‹ РґР»СЏ С…СЂР°РЅРµРЅРёСЏ РїРѕСЃР»РµРґРЅРµР№ РїРѕР·РёС†РёРё С…РѕРґР° РёРіСЂРѕРєР°
 
-    // Переменная для подсчета количества шагов (ходов)
+    // РџРµСЂРµРјРµРЅРЅР°СЏ РґР»СЏ РїРѕРґСЃС‡РµС‚Р° РєРѕР»РёС‡РµСЃС‚РІР° С…РѕРґРѕРІ (РѕС‡РєРѕРІ)
     private int moveCount = 0;
 
-    // Максимальное количество ходов
+    // РњР°РєСЃРёРјР°Р»СЊРЅРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ С…РѕРґРѕРІ
     private const int maxMoves = 18;
 
-    // Событие для пустой колоды
+    // РЎРѕР±С‹С‚РёРµ РґР»СЏ РєРѕРЅС†Р° РїР°СЂС‚РёРё
     public delegate void DeckEmptyHandler();
     public static event DeckEmptyHandler OnDeckEmpty;
+
+    // РЎРѕР±С‹С‚РёРµ СЃРјРµРЅС‹ С…РѕРґР°
+    public delegate void TurnChangedHandler();
+    public event TurnChangedHandler OnTurnChanged;
 
     private void Awake()
     {
@@ -41,7 +45,7 @@ public class ChangeTurn : MonoBehaviour
 
     void Start()
     {
-        // Если EnemyAI не найден, выбор хода определяется случайно
+        // Р•СЃР»Рё EnemyAI РЅРµ РЅР°Р№РґРµРЅ, РІС‹Р±РѕСЂ С…РѕРґР° РѕРїСЂРµРґРµР»СЏРµС‚СЃСЏ СЃР»СѓС‡Р°Р№РЅРѕ
         int t = Random.Range(0, 100);
         SetTurn(t <= 50);
     }
@@ -50,16 +54,16 @@ public class ChangeTurn : MonoBehaviour
     {
         IsPlayer1Turn = isPlayer1;
 
-        // Устанавливаем цвета с 10% прозрачности
-        Color player1Color = new Color(0, 1, 0, 0.05f); // Зеленый с 10% прозрачности
-        Color player2Color = new Color(1, 0, 0, 0.05f); // Красный с 10% прозрачности
+        // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј С†РІРµС‚Р° СЃ 10% РїСЂРѕР·СЂР°С‡РЅРѕСЃС‚Рё
+        Color player1Color = new Color(0, 1, 0, 0.05f); // Р—РµР»РµРЅС‹Р№ СЃ 10% РїСЂРѕР·СЂР°С‡РЅРѕСЃС‚Рё
+        Color player2Color = new Color(1, 0, 0, 0.05f); // РљСЂР°СЃРЅС‹Р№ СЃ 10% РїСЂРѕР·СЂР°С‡РЅРѕСЃС‚Рё
 
         if (isPlayer1)
         {
             turnPlayer1.gameObject.SetActive(true);
             turnPlayer2.gameObject.SetActive(false);
-            player1BG.color = player1Color; // Установка зеленого с 10% прозрачности
-            player2BG.color = player2Color; // Установка красного с 10% прозрачности
+            player1BG.color = player1Color; // РЈСЃС‚Р°РЅРѕРІРєР° Р·РµР»РµРЅРѕРіРѕ СЃ 10% РїСЂРѕР·СЂР°С‡РЅРѕСЃС‚Рё
+            player2BG.color = player2Color; // РЈСЃС‚Р°РЅРѕРІРєР° РєСЂР°СЃРЅРѕРіРѕ СЃ 10% РїСЂРѕР·СЂР°С‡РЅРѕСЃС‚Рё
             SetCardInteractability(player1Cards, true);
             SetCardInteractability(player2Cards, false);
         }
@@ -67,33 +71,29 @@ public class ChangeTurn : MonoBehaviour
         {
             turnPlayer1.gameObject.SetActive(false);
             turnPlayer2.gameObject.SetActive(true);
-            player1BG.color = player2Color; // Установка красного с 10% прозрачности
-            player2BG.color = player1Color; // Установка зеленого с 10% прозрачности
+            player1BG.color = player2Color; // РЈСЃС‚Р°РЅРѕРІРєР° РєСЂР°СЃРЅРѕРіРѕ СЃ 10% РїСЂРѕР·СЂР°С‡РЅРѕСЃС‚Рё
+            player2BG.color = player1Color; // РЈСЃС‚Р°РЅРѕРІРєР° Р·РµР»РµРЅРѕРіРѕ СЃ 10% РїСЂРѕР·СЂР°С‡РЅРѕСЃС‚Рё
             SetCardInteractability(player1Cards, false);
             SetCardInteractability(player2Cards, true);
         }
     }
-    // Метод для переключения хода
+
     public void SwitchTurn(Vector2Int playerPosition)
     {
-        // Сохраняем позицию, где игрок совершил последний ход
         lastPlayerPosition = playerPosition;
-
-        // Переключаем ход
         SetTurn(!IsPlayer1Turn);
 
-        // Увеличиваем счетчик ходов
-        moveCount++;
+        // Р’С‹Р·С‹РІР°РµРј СЃРѕР±С‹С‚РёРµ СЃРјРµРЅС‹ С…РѕРґР°
+        if (OnTurnChanged != null)
+        {
+            OnTurnChanged.Invoke();
+            Debug.Log($"РҐРѕРґ СЃРјРµРЅРёР»СЃСЏ. РЎРµР№С‡Р°СЃ С…РѕРґ РёРіСЂРѕРєР° {(IsPlayer1Turn ? "1" : "2 (РР)")}");
+        }
 
-        // Проверяем, если достигли максимального количества ходов
+        moveCount++;
         if (moveCount >= maxMoves)
         {
-            Debug.Log("Достигнуто максимальное количество ходов. Вызов события OnDeckEmpty.");
-
-            // Вызываем событие, если подписчики существуют
-
-                OnDeckEmpty.Invoke();
-            
+            OnDeckEmpty?.Invoke();
         }
     }
 
@@ -105,100 +105,3 @@ public class ChangeTurn : MonoBehaviour
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-using UnityEngine;
-using UnityEngine.UI;
-
-public class ChangeTurn : MonoBehaviour
-{
-    public static ChangeTurn Instance { get; private set; }
-
-    public Text turnPlayer1;
-    public Text turnPlayer2;
-    public Image player1BG;
-    public Image player2BG;
-
-    public CanvasGroup[] player1Cards;
-    public CanvasGroup[] player2Cards;
-
-    public static bool IsPlayer1Turn { get; private set; }
-
-    private Vector2Int lastPlayerPosition;  // Переменная для хранения последней позиции хода игрока
-    public delegate void DeckEmptyHandler();
-    public static event DeckEmptyHandler OnDeckEmpty;
-
-
-    private void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-
-    void Start()
-    {        
-            // Если EnemyAI не найден, выбор хода определяется случайно
-            int t = Random.Range(0, 100);
-            SetTurn(t <= 50);        
-    }
-
-    public void SetTurn(bool isPlayer1)
-    {
-        IsPlayer1Turn = isPlayer1;
-
-        if (isPlayer1)
-        {
-            turnPlayer1.gameObject.SetActive(true);
-            turnPlayer2.gameObject.SetActive(false);
-            player1BG.color = Color.green;
-            player2BG.color = Color.red;
-            SetCardInteractability(player1Cards, true);
-            SetCardInteractability(player2Cards, false);
-        }
-        else
-        {
-            turnPlayer1.gameObject.SetActive(false);
-            turnPlayer2.gameObject.SetActive(true);
-            player1BG.color = Color.red;
-            player2BG.color = Color.green;
-            SetCardInteractability(player1Cards, false);
-            SetCardInteractability(player2Cards, true);
-        }
-    }
-
-    // Метод для переключения хода
-    public void SwitchTurn(Vector2Int playerPosition)
-    {
-        // Сохраняем позицию, где игрок совершил последний ход
-        lastPlayerPosition = playerPosition;
-
-        // Переключаем ход
-        SetTurn(!IsPlayer1Turn);        
-    }
-
-    private void SetCardInteractability(CanvasGroup[] cardGroups, bool isInteractable)
-    {
-        foreach (CanvasGroup cardGroup in cardGroups)
-        {
-            cardGroup.blocksRaycasts = isInteractable;
-        }
-    }
-}
-*/

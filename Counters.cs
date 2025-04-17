@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.UI;
 using YG;
-using static CardManager;
 
 public class Counters : MonoBehaviour
 {
@@ -15,36 +14,47 @@ public class Counters : MonoBehaviour
     private int counter2 = 0;
 
     private int score = 0;
+
     private void Awake()
     {
         player1WinPanel.SetActive(false);
         player2WinPanel.SetActive(false);
         nobodyWinPanel.SetActive(false);
     }
+
     void Start()
     {
         counterPlayer1.text = counter1.ToString();
         counterPlayer2.text = counter2.ToString();
     }
+
     private void OnEnable()
     {
-        GridCellForPlayerVsPlayer.OnCardTookByPlayer1 += GridCellForPlayerVsPlayer_OnCardTookByPlayer1;
-        GridCellForPlayerVsPlayer.OnCardTookByPlayer2 += GridCellForPlayerVsPlayer_OnCardTookByPlayer2;
-        ChangeTurn.OnDeckEmpty += OnDeckEmptyHandler;  // Подписываемся на событие, когда колода пуста
+        // Подписываемся на события обоих типов ячеек
+        GridCellForPlayerVsPlayer.OnCardTookByPlayer1 += CardTookByPlayer1;
+        GridCellForPlayerVsPlayer.OnCardTookByPlayer2 += CardTookByPlayer2;
+
+        // Добавляем подписку на события из AIGridCell
+        AIGridCell.OnCardTookByPlayer1 += CardTookByPlayer1;
+        AIGridCell.OnCardTookByPlayer2 += CardTookByPlayer2;
+
+        ChangeTurn.OnDeckEmpty += OnDeckEmptyHandler;
     }
 
-    private void GridCellForPlayerVsPlayer_OnCardTookByPlayer2()
+    private void CardTookByPlayer2()
     {
         counter2++;
         counterPlayer2.text = counter2.ToString();
+        Debug.Log($"Игрок 2 (ИИ) захватил карту. Всего захвачено: {counter2}");
     }
 
-    private void GridCellForPlayerVsPlayer_OnCardTookByPlayer1()
+    private void CardTookByPlayer1()
     {
         counter1++;
         counterPlayer1.text = counter1.ToString();
+        Debug.Log($"Игрок 1 захватил карту. Всего захвачено: {counter1}");
     }
-    // Обработка события, когда колода пуста
+
     private void OnDeckEmptyHandler()
     {
         Debug.Log("Обе колоды пусты, определяем победителя...");
@@ -52,35 +62,44 @@ public class Counters : MonoBehaviour
         if (counter1 > counter2)
         {
             Debug.Log("Игрок 1 победил!");
-            player1WinPanel.SetActive(true);  // Показываем панель победы игрока 1
+            player1WinPanel.SetActive(true);
             SaveScore();
         }
         else if (counter2 > counter1)
         {
-            Debug.Log("Игрок 2 победил!");
-            player2WinPanel.SetActive(true);  // Показываем панель победы игрока 2
+            Debug.Log("Игрок 2 (ИИ) победил!");
+            player2WinPanel.SetActive(true);
         }
         else
         {
-            Debug.Log("Ничья!");  // Добавьте панель для ничьи, если требуется
+            Debug.Log("Ничья!");
             nobodyWinPanel.SetActive(true);
         }
     }
+
     private void OnDisable()
     {
-        GridCellForPlayerVsPlayer.OnCardTookByPlayer1 -= GridCellForPlayerVsPlayer_OnCardTookByPlayer1;
-        GridCellForPlayerVsPlayer.OnCardTookByPlayer2 -= GridCellForPlayerVsPlayer_OnCardTookByPlayer2;
-        ChangeTurn.OnDeckEmpty -= OnDeckEmptyHandler;  // Отписываемся от события
+        // Отписываемся от событий обоих типов ячеек
+        GridCellForPlayerVsPlayer.OnCardTookByPlayer1 -= CardTookByPlayer1;
+        GridCellForPlayerVsPlayer.OnCardTookByPlayer2 -= CardTookByPlayer2;
+
+        // Отписываемся от событий AIGridCell
+        AIGridCell.OnCardTookByPlayer1 -= CardTookByPlayer1;
+        AIGridCell.OnCardTookByPlayer2 -= CardTookByPlayer2;
+
+        ChangeTurn.OnDeckEmpty -= OnDeckEmptyHandler;
     }
+
     private void SaveScore()
     {
+        score = counter1; // Устанавливаем счет игрока 1 как основной
         YandexGame.savesData.totalScore = score;
         YandexGame.SaveProgress();
+        AddScoreLeaderboard();
     }
 
     private void AddScoreLeaderboard()
     {
         YandexGame.NewLeaderboardScores("Cards", score);
     }
-
 }

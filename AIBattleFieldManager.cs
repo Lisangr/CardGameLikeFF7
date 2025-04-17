@@ -1,9 +1,13 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
-public class BattleFieldGridManager : MonoBehaviour
+public class AIBattleFieldManager : MonoBehaviour
 {
+    [Header("UI Grid Settings")]
+    public GridLayoutGroup gridLayoutGroup;
+    [SerializeField] private GameObject gridCellPrefab; // Префаб с AIGridCell
+
     public enum GridType
     {
         Grid3x3,
@@ -11,15 +15,10 @@ public class BattleFieldGridManager : MonoBehaviour
         Grid4x8
     }
 
-    [Header("UI Grid Settings")]
-    public GridLayoutGroup gridLayoutGroup;
-    [SerializeField] private GameObject gridCellPrefab; // Добавляем SerializeField
-
-
     [Header("Grid Configuration")]
     public GridType currentGridType = GridType.Grid3x3;
 
-    public GridCell[,] gridCells;
+    public AIGridCell[,] gridCells;
 
     private void Start()
     {
@@ -46,19 +45,32 @@ public class BattleFieldGridManager : MonoBehaviour
         SetNeighbors();
     }
 
+    void ConfigureGridLayout()
+    {
+        switch (currentGridType)
+        {
+            case GridType.Grid3x3:
+                gridLayoutGroup.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+                gridLayoutGroup.constraintCount = 3;
+                break;
+            case GridType.Grid3x6:
+                gridLayoutGroup.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+                gridLayoutGroup.constraintCount = 6;
+                break;
+            case GridType.Grid4x8:
+                gridLayoutGroup.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+                gridLayoutGroup.constraintCount = 8;
+                break;
+        }
+    }
+
     void GenerateGrid()
     {
-        if (gridCellPrefab == null)
-        {
-            Debug.LogError("Grid Cell Prefab is null!");
-            return;
-        }
-
         int columns, rows;
         GetGridDimensions(out columns, out rows);
 
         // Инициализируем массив ячеек
-        gridCells = new GridCell[columns, rows];
+        gridCells = new AIGridCell[columns, rows];
 
         // Удаляем существующие ячейки
         foreach (Transform child in transform)
@@ -72,11 +84,11 @@ public class BattleFieldGridManager : MonoBehaviour
             for (int x = 0; x < columns; x++)
             {
                 GameObject cellObject = Instantiate(gridCellPrefab, transform);
-                GridCell cell = cellObject.GetComponent<GridCell>();
+                AIGridCell cell = cellObject.GetComponent<AIGridCell>();
 
                 if (cell == null)
                 {
-                    Debug.LogError("GridCell component not found on prefab!");
+                    Debug.LogError("AIGridCell component not found on prefab!");
                     continue;
                 }
 
@@ -91,29 +103,6 @@ public class BattleFieldGridManager : MonoBehaviour
         Debug.Log($"Created grid {columns}x{rows}");
     }
 
-    void ConfigureGridLayout()
-    {
-        switch (currentGridType)
-        {
-            case GridType.Grid3x3:
-                gridLayoutGroup.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-                gridLayoutGroup.constraintCount = 3;
-                break;
-            case GridType.Grid3x6:
-                gridLayoutGroup.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-                gridLayoutGroup.constraintCount = 4;
-                break;
-            case GridType.Grid4x8:
-                gridLayoutGroup.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-                gridLayoutGroup.constraintCount = 8;
-                break;
-            default:
-                Debug.LogWarning("Grid type not set!");
-                break;
-        }
-    }
-    
-    // Получаем размеры сетки на основе выбранного типа
     public void GetGridDimensions(out int columns, out int rows)
     {
         switch (currentGridType)
@@ -131,8 +120,8 @@ public class BattleFieldGridManager : MonoBehaviour
                 rows = 4;
                 break;
             default:
-                columns = 0;
-                rows = 0;
+                columns = 3;
+                rows = 3;
                 break;
         }
     }
@@ -146,29 +135,53 @@ public class BattleFieldGridManager : MonoBehaviour
         {
             for (int y = 0; y < rows; y++)
             {
-                GridCell currentCell = gridCells[x, y];
+                AIGridCell currentCell = gridCells[x, y];
 
-                if (x > 0) currentCell.leftNeighbor = gridCells[x - 1, y];  // Левый сосед
-                if (x < columns - 1) currentCell.rightNeighbor = gridCells[x + 1, y];  // Правый сосед
-                if (y > 0) currentCell.bottomNeighbor = gridCells[x, y - 1];  // Нижний сосед
-                if (y < rows - 1) currentCell.topNeighbor = gridCells[x, y + 1];  // Верхний сосед
+                if (currentCell != null)
+                {
+                    if (x > 0) currentCell.leftNeighbor = gridCells[x - 1, y];
+                    if (x < columns - 1) currentCell.rightNeighbor = gridCells[x + 1, y];
+                    if (y > 0) currentCell.bottomNeighbor = gridCells[x, y - 1];
+                    if (y < rows - 1) currentCell.topNeighbor = gridCells[x, y + 1];
+                }
             }
         }
     }
 
-
-    // Новый метод для получения всех ячеек в одномерном списке
-    public List<GridCell> GetAllCells()
+    public List<AIGridCell> GetEmptyCells()
     {
-        List<GridCell> allCells = new List<GridCell>();
+        List<AIGridCell> emptyCells = new List<AIGridCell>();
         int columns = gridCells.GetLength(0);
         int rows = gridCells.GetLength(1);
 
-        for (int y = 0; y < rows; y++)
+        for (int x = 0; x < columns; x++)
         {
-            for (int x = 0; x < columns; x++)
+            for (int y = 0; y < rows; y++)
             {
-                allCells.Add(gridCells[x, y]);
+                if (gridCells[x, y] != null && !gridCells[x, y].HasCard())
+                {
+                    emptyCells.Add(gridCells[x, y]);
+                }
+            }
+        }
+
+        return emptyCells;
+    }
+
+    public List<AIGridCell> GetAllCells()
+    {
+        List<AIGridCell> allCells = new List<AIGridCell>();
+        int columns = gridCells.GetLength(0);
+        int rows = gridCells.GetLength(1);
+
+        for (int x = 0; x < columns; x++)
+        {
+            for (int y = 0; y < rows; y++)
+            {
+                if (gridCells[x, y] != null)
+                {
+                    allCells.Add(gridCells[x, y]);
+                }
             }
         }
 

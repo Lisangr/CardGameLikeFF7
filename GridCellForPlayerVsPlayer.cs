@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public class GridCellForPlayerVsPlayer : MonoBehaviour, IDropHandler
 {
@@ -8,12 +9,14 @@ public class GridCellForPlayerVsPlayer : MonoBehaviour, IDropHandler
     public GridCellForPlayerVsPlayer rightNeighbor;
     public GridCellForPlayerVsPlayer topNeighbor;
     public GridCellForPlayerVsPlayer bottomNeighbor;
-    //public CardManager cardManager;
 
     public Vector2Int gridPosition;
     public Card currentCard;
-    private Color customRed;
-    private Color customGreen;
+
+    // РќРѕРІС‹Рµ С†РІРµС‚Р° РґР»СЏ Р»СѓС‡С€РµР№ РІРёР·СѓР°Р»РёР·Р°С†РёРё
+    private Color playerColor;     // Р“РѕР»СѓР±РѕР№ РґР»СЏ РєР°СЂС‚ РёРіСЂРѕРєР°
+    private Color aiColor;         // Р—РµР»РµРЅС‹Р№ РґР»СЏ РєР°СЂС‚ РР
+    private Color neutralColor;    // Р‘РµР»С‹Р№ РґР»СЏ РЅРµР№С‚СЂР°Р»СЊРЅС‹С… РєР°СЂС‚
 
     public delegate void CounterForPlayer();
     public static event CounterForPlayer OnCardTookByPlayer1;
@@ -21,25 +24,28 @@ public class GridCellForPlayerVsPlayer : MonoBehaviour, IDropHandler
 
     void Start()
     {
-        // Преобразуем строковый цвет в объект Color
-        if (!ColorUtility.TryParseHtmlString("#FF9494", out customRed))
+        // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј РЅРѕРІС‹Рµ, Р±РѕР»РµРµ РЅР°РіР»СЏРґРЅС‹Рµ С†РІРµС‚Р°
+        if (!ColorUtility.TryParseHtmlString("#4FC3F7", out playerColor))  // Р“РѕР»СѓР±РѕР№ РґР»СЏ РёРіСЂРѕРєР°
         {
-            Debug.LogError("Invalid color string for #FF9494");
+            Debug.LogError("Invalid color string for #4FC3F7");
+            playerColor = Color.blue;
         }
 
-        // Преобразуем строковый цвет в объект Color
-        if (!ColorUtility.TryParseHtmlString("#A3FF86", out customGreen))
+        if (!ColorUtility.TryParseHtmlString("#81C784", out aiColor))  // Р—РµР»РµРЅС‹Р№ РґР»СЏ РР
         {
-            Debug.LogError("Invalid color string for #A3FF86");
+            Debug.LogError("Invalid color string for #81C784");
+            aiColor = Color.green;
         }
+
+        neutralColor = Color.white;  // Р‘РµР»С‹Р№ РґР»СЏ РЅРµР№С‚СЂР°Р»СЊРЅС‹С… РєР°СЂС‚
     }
 
     public void OnDrop(PointerEventData eventData)
     {
-        // Проверяем, что в ячейке еще нет карты
+        // РџСЂРѕРІРµСЂСЏРµРј, С‡С‚Рѕ РІ СЏС‡РµР№РєРµ РµС‰Рµ РЅРµС‚ РєР°СЂС‚С‹
         if (currentCard != null)
         {
-            Debug.LogWarning("Ячейка уже занята картой.");
+            Debug.LogWarning("РЇС‡РµР№РєР° СѓР¶Рµ Р·Р°РЅСЏС‚Р° РєР°СЂС‚РѕР№.");
             return;
         }
 
@@ -49,34 +55,46 @@ public class GridCellForPlayerVsPlayer : MonoBehaviour, IDropHandler
         {
             DraggableCard draggableCard = droppedObject.GetComponent<DraggableCard>();
 
-            // Проверяем, принадлежит ли карта активному игроку
+            // РџСЂРѕРІРµСЂСЏРµРј, РїСЂРёРЅР°РґР»РµР¶РёС‚ Р»Рё РєР°СЂС‚Р° С‚РµРєСѓС‰РµРјСѓ РёРіСЂРѕРєСѓ
             if ((draggableCard.card.isPlayer1Card && !ChangeTurn.IsPlayer1Turn) ||
                 (!draggableCard.card.isPlayer1Card && ChangeTurn.IsPlayer1Turn))
             {
-                Debug.LogWarning("Нельзя сбросить карту другого игрока.");
+                Debug.LogWarning("РќРµР»СЊР·СЏ РїРѕР»РѕР¶РёС‚СЊ РєР°СЂС‚Сѓ РґСЂСѓРіРѕРіРѕ РёРіСЂРѕРєР°.");
                 return;
             }
 
-            // Перемещаем карту в эту ячейку
+            // Р Р°Р·РјРµС‰Р°РµРј РєР°СЂС‚Сѓ РІ СЌС‚Сѓ СЏС‡РµР№РєСѓ
             droppedObject.transform.SetParent(transform);
             droppedObject.transform.localPosition = Vector3.zero;
 
-            // Обновляем состояние ячейки, устанавливаем текущую карту
+            // РЎРѕС…СЂР°РЅСЏРµРј СЃСЃС‹Р»РєСѓ РЅР° РєР°СЂС‚Сѓ
             currentCard = draggableCard.card;
 
-            // Блокируем карту и меняем ход
+            // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј С†РІРµС‚ РєР°СЂС‚С‹ РІ СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРё СЃ РїСЂРёРЅР°РґР»РµР¶РЅРѕСЃС‚СЊСЋ
+            SetInitialCardColor(draggableCard.card);
+
+            // Р‘Р»РѕРєРёСЂСѓРµРј РєР°СЂС‚Сѓ Рё РјРµРЅСЏРµРј С…РѕРґ
             draggableCard.LockCard();
             ChangeTurn.Instance.SwitchTurn(gridPosition);
 
-            // Сравниваем новую карту с соседями
+            // РЎСЂР°РІРЅРёРІР°РµРј РєР°СЂС‚Сѓ СЃ СЃРѕСЃРµРґСЏРјРё
             CompareWithNeighbors(draggableCard.card);
         }
     }
 
+    // РќРѕРІС‹Р№ РјРµС‚РѕРґ РґР»СЏ СѓСЃС‚Р°РЅРѕРІРєРё РЅР°С‡Р°Р»СЊРЅРѕРіРѕ С†РІРµС‚Р° РєР°СЂС‚С‹
+    private void SetInitialCardColor(Card card)
+    {
+        Image cardImage = card.GetComponent<Image>();
+        if (cardImage != null)
+        {
+            cardImage.color = neutralColor; // РР·РЅР°С‡Р°Р»СЊРЅРѕ РєР°СЂС‚С‹ РЅРµР№С‚СЂР°Р»СЊРЅРѕРіРѕ С†РІРµС‚Р°
+        }
+    }
 
     public void CompareWithNeighbors(Card newCard)
     {
-        // С левой картой
+        // РЎ Р»РµРІС‹Рј СЃРѕСЃРµРґРѕРј
         if (leftNeighbor != null && leftNeighbor.HasCard())
         {
             Card leftCard = leftNeighbor.GetCard();
@@ -84,18 +102,18 @@ public class GridCellForPlayerVsPlayer : MonoBehaviour, IDropHandler
             {
                 if (!newCard.isPlayer1Card)
                 {
-                    leftNeighbor.ChangeCardColor(customGreen);
+                    leftNeighbor.ChangeCardColor(aiColor); // Р—РµР»РµРЅС‹Р№ РґР»СЏ РєР°СЂС‚ РР
                     OnCardTookByPlayer2?.Invoke();
                 }
                 else
                 {
-                    leftNeighbor.ChangeCardColor(customRed);
+                    leftNeighbor.ChangeCardColor(playerColor); // Р“РѕР»СѓР±РѕР№ РґР»СЏ РєР°СЂС‚ РёРіСЂРѕРєР°
                     OnCardTookByPlayer1?.Invoke();
                 }
             }
         }
 
-        // С правой картой
+        // РЎ РїСЂР°РІС‹Рј СЃРѕСЃРµРґРѕРј
         if (rightNeighbor != null && rightNeighbor.HasCard())
         {
             Card rightCard = rightNeighbor.GetCard();
@@ -103,79 +121,79 @@ public class GridCellForPlayerVsPlayer : MonoBehaviour, IDropHandler
             {
                 if (!newCard.isPlayer1Card)
                 {
-                    rightNeighbor.ChangeCardColor(customGreen);
+                    rightNeighbor.ChangeCardColor(aiColor); // Р—РµР»РµРЅС‹Р№ РґР»СЏ РєР°СЂС‚ РР
                     OnCardTookByPlayer2?.Invoke();
                 }
                 else
                 {
-                    rightNeighbor.ChangeCardColor(customRed);
+                    rightNeighbor.ChangeCardColor(playerColor); // Р“РѕР»СѓР±РѕР№ РґР»СЏ РєР°СЂС‚ РёРіСЂРѕРєР°
                     OnCardTookByPlayer1?.Invoke();
                 }
             }
         }
 
-        // С верхней картой
+        // РЎ РІРµСЂС…РЅРёРј СЃРѕСЃРµРґРѕРј
         if (topNeighbor != null && topNeighbor.HasCard())
         {
             Card topCard = topNeighbor.GetCard();
-            if (CanBeatCard(newCard, topCard, newCard.bottomValue, topCard.topValue))
+            if (CanBeatCard(newCard, topCard, newCard.topValue, topCard.bottomValue))
             {
                 if (!newCard.isPlayer1Card)
                 {
-                    topNeighbor.ChangeCardColor(customGreen);
+                    topNeighbor.ChangeCardColor(aiColor); // Р—РµР»РµРЅС‹Р№ РґР»СЏ РєР°СЂС‚ РР
                     OnCardTookByPlayer2?.Invoke();
                 }
                 else
                 {
-                    topNeighbor.ChangeCardColor(customRed);
+                    topNeighbor.ChangeCardColor(playerColor); // Р“РѕР»СѓР±РѕР№ РґР»СЏ РєР°СЂС‚ РёРіСЂРѕРєР°
                     OnCardTookByPlayer1?.Invoke();
                 }
             }
         }
 
-        // С нижней картой
+        // РЎ РЅРёР¶РЅРёРј СЃРѕСЃРµРґРѕРј
         if (bottomNeighbor != null && bottomNeighbor.HasCard())
         {
             Card bottomCard = bottomNeighbor.GetCard();
-            if (CanBeatCard(newCard, bottomCard, newCard.topValue, bottomCard.bottomValue))
+            if (CanBeatCard(newCard, bottomCard, newCard.bottomValue, bottomCard.topValue))
             {
                 if (!newCard.isPlayer1Card)
                 {
-                    bottomNeighbor.ChangeCardColor(customGreen);
+                    bottomNeighbor.ChangeCardColor(aiColor); // Р—РµР»РµРЅС‹Р№ РґР»СЏ РєР°СЂС‚ РР
                     OnCardTookByPlayer2?.Invoke();
                 }
                 else
                 {
-                    bottomNeighbor.ChangeCardColor(customRed);
+                    bottomNeighbor.ChangeCardColor(playerColor); // Р“РѕР»СѓР±РѕР№ РґР»СЏ РєР°СЂС‚ РёРіСЂРѕРєР°
                     OnCardTookByPlayer1?.Invoke();
                 }
             }
         }
     }
 
-    // Метод для проверки, может ли новая карта побить соседнюю
+    // РњРµС‚РѕРґ РґР»СЏ РїСЂРѕРІРµСЂРєРё, РјРѕР¶РµС‚ Р»Рё РєР°СЂС‚Р° РїРѕР±РёС‚СЊ РґСЂСѓРіСѓСЋ РєР°СЂС‚Сѓ
     private bool CanBeatCard(Card newCard, Card neighborCard, int newCardValue, int neighborCardValue)
     {
-        // Если карта была побеждена (изменила цвет), разрешаем перебить, даже если карта того же игрока
+        // РџСЂРѕРІРµСЂСЏРµРј, Р±С‹Р»Р° Р»Рё РєР°СЂС‚Р° СѓР¶Рµ Р·Р°С…РІР°С‡РµРЅР°
         bool wasBeaten = IsCardColored(neighborCard);
 
-        // Если карта того же игрока и не была побеждена — не перебиваем
+        // Р•СЃР»Рё РєР°СЂС‚С‹ РїСЂРёРЅР°РґР»РµР¶Р°С‚ РѕРґРЅРѕРјСѓ РёРіСЂРѕРєСѓ Рё РѕРЅР° РЅРµ Р±С‹Р»Р° Р·Р°С…РІР°С‡РµРЅР° СЂР°РЅРµРµ, С‚Рѕ РїРѕР±РёС‚СЊ РЅРµР»СЊР·СЏ
         if (newCard.isPlayer1Card == neighborCard.isPlayer1Card && !wasBeaten)
         {
             return false;
         }
 
-        // Проверяем значения карт, можно ли перебить
+        // РЎСЂР°РІРЅРёРІР°РµРј Р·РЅР°С‡РµРЅРёСЏ РєР°СЂС‚
         return newCardValue > neighborCardValue;
     }
 
-    // Проверяет, была ли карта уже побеждена (окрашена)
+    // РџСЂРѕРІРµСЂСЏРµРј, Р±С‹Р»Р° Р»Рё РєР°СЂС‚Р° СѓР¶Рµ Р·Р°С…РІР°С‡РµРЅР° (РѕРєСЂР°С€РµРЅР°)
     private bool IsCardColored(Card neighborCard)
     {
         Image neighborCardImage = neighborCard.GetComponent<Image>();
         if (neighborCardImage != null)
         {
-            return neighborCardImage.color == customRed || neighborCardImage.color == customGreen;
+            return neighborCardImage.color == playerColor || neighborCardImage.color == aiColor;
         }
         return false;
     }
@@ -194,11 +212,21 @@ public class GridCellForPlayerVsPlayer : MonoBehaviour, IDropHandler
     {
         if (HasCard())
         {
-            Image cardImage = transform.GetChild(0).GetComponent<Image>();
+            Image cardImage = currentCard.GetComponent<Image>();
             if (cardImage != null)
             {
                 Debug.Log($"Changing card color to {color}.");
-                cardImage.color = color; // Изменяем цвет карты
+                cardImage.color = color; // РР·РјРµРЅСЏРµРј С†РІРµС‚ РєР°СЂС‚С‹
+
+                // РўР°РєР¶Рµ РѕР±РЅРѕРІР»СЏРµРј isPlayer1Card СЃРІРѕР№СЃС‚РІРѕ РєР°СЂС‚С‹, С‡С‚РѕР±С‹ РѕС‚СЂР°Р·РёС‚СЊ РЅРѕРІСѓСЋ РїСЂРёРЅР°РґР»РµР¶РЅРѕСЃС‚СЊ
+                if (color == playerColor)
+                {
+                    currentCard.isPlayer1Card = true; // РўРµРїРµСЂСЊ СЌС‚Рѕ РєР°СЂС‚Р° РёРіСЂРѕРєР°
+                }
+                else if (color == aiColor)
+                {
+                    currentCard.isPlayer1Card = false; // РўРµРїРµСЂСЊ СЌС‚Рѕ РєР°СЂС‚Р° РР
+                }
             }
             else
             {
