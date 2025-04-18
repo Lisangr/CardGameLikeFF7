@@ -98,12 +98,14 @@ public class GridCellForPlayerVsPlayer : MonoBehaviour, IDropHandler
         if (leftNeighbor != null && leftNeighbor.HasCard())
         {
             Card leftCard = leftNeighbor.GetCard();
+            // Для левого соседа мы сравниваем левое значение нашей карты с правым значением соседа
             if (CanBeatCard(newCard, leftCard, newCard.leftValue, leftCard.rightValue))
             {
                 if (!newCard.isPlayer1Card)
                 {
                     leftNeighbor.ChangeCardColor(aiColor); // Зеленый для карт ИИ
                     OnCardTookByPlayer2?.Invoke();
+                    Debug.Log($"ИИ побил карту слева своим значением {newCard.leftValue} > {leftCard.rightValue}");
                 }
                 else
                 {
@@ -117,12 +119,14 @@ public class GridCellForPlayerVsPlayer : MonoBehaviour, IDropHandler
         if (rightNeighbor != null && rightNeighbor.HasCard())
         {
             Card rightCard = rightNeighbor.GetCard();
+            // Для правого соседа мы сравниваем правое значение нашей карты с левым значением соседа
             if (CanBeatCard(newCard, rightCard, newCard.rightValue, rightCard.leftValue))
             {
                 if (!newCard.isPlayer1Card)
                 {
                     rightNeighbor.ChangeCardColor(aiColor); // Зеленый для карт ИИ
                     OnCardTookByPlayer2?.Invoke();
+                    Debug.Log($"ИИ побил карту справа своим значением {newCard.rightValue} > {rightCard.leftValue}");
                 }
                 else
                 {
@@ -136,12 +140,14 @@ public class GridCellForPlayerVsPlayer : MonoBehaviour, IDropHandler
         if (topNeighbor != null && topNeighbor.HasCard())
         {
             Card topCard = topNeighbor.GetCard();
-            if (CanBeatCard(newCard, topCard, newCard.topValue, topCard.bottomValue))
+            // ВАЖНО: Для верхнего соседа мы сравниваем верхнее значение нашей карты с нижним значением соседа
+            if (CanBeatCard(newCard, topCard, newCard.bottomValue, topCard.topValue))
             {
                 if (!newCard.isPlayer1Card)
                 {
                     topNeighbor.ChangeCardColor(aiColor); // Зеленый для карт ИИ
                     OnCardTookByPlayer2?.Invoke();
+                    Debug.Log($"ИИ побил карту сверху своим значением {newCard.bottomValue} > {topCard.topValue}");
                 }
                 else
                 {
@@ -155,12 +161,14 @@ public class GridCellForPlayerVsPlayer : MonoBehaviour, IDropHandler
         if (bottomNeighbor != null && bottomNeighbor.HasCard())
         {
             Card bottomCard = bottomNeighbor.GetCard();
-            if (CanBeatCard(newCard, bottomCard, newCard.bottomValue, bottomCard.topValue))
+            // ВАЖНО: Для нижнего соседа мы сравниваем нижнее значение нашей карты с верхним значением соседа
+            if (CanBeatCard(newCard, bottomCard, newCard.topValue, bottomCard.bottomValue))
             {
                 if (!newCard.isPlayer1Card)
                 {
                     bottomNeighbor.ChangeCardColor(aiColor); // Зеленый для карт ИИ
                     OnCardTookByPlayer2?.Invoke();
+                    Debug.Log($"ИИ побил карту снизу своим значением {newCard.topValue} > {bottomCard.bottomValue}");
                 }
                 else
                 {
