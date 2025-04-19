@@ -14,6 +14,8 @@ public class AIPlayer : MonoBehaviour
 
     private Transform cardsParent; // Для хранения ссылки на родительский объект карт
 
+    private bool isProcessingMove = false;
+
     private void Start()
     {
         cardManager = FindObjectOfType<CardManager>();
@@ -73,9 +75,11 @@ public class AIPlayer : MonoBehaviour
     {
         Debug.Log($"Обработка смены хода. IsPlayer1Turn: {ChangeTurn.IsPlayer1Turn}");
 
-        if (!ChangeTurn.IsPlayer1Turn) // Если ход AI
+        if (!ChangeTurn.IsPlayer1Turn && !isProcessingMove) // Если ход AI и не выполняется другой ход
         {
             Debug.Log("Ход AI. Планирую ход через " + aiMoveDelay + " секунд");
+            isProcessingMove = true; // Устанавливаем флаг, что ход обрабатывается
+            CancelInvoke("MakeAIMove"); // Отменяем предыдущие запланированные ходы
             Invoke("MakeAIMove", aiMoveDelay);
         }
     }
@@ -88,6 +92,13 @@ public class AIPlayer : MonoBehaviour
 
     private void MakeAIMove()
     {
+        if (ChangeTurn.IsPlayer1Turn)
+        {
+            Debug.LogWarning("Предотвращен ход ИИ, так как сейчас ход игрока!");
+            isProcessingMove = false;
+            return;
+        }
+        
         Debug.Log($"AI делает ход. Доступно карт: {aiCards.Count}");
         
         // Очищаем список от null-ссылок
@@ -100,6 +111,7 @@ public class AIPlayer : MonoBehaviour
         {
             Debug.LogWarning("У AI нет карт после очистки!");
             // Здесь можно добавить код для создания новых карт при необходимости
+            isProcessingMove = false;
             return;
         }
 
@@ -119,6 +131,7 @@ public class AIPlayer : MonoBehaviour
         if (aiCards.Count == 0)
         {
             Debug.LogWarning("У AI нет карт!");
+            isProcessingMove = false;
             return;
         }
 
@@ -126,6 +139,7 @@ public class AIPlayer : MonoBehaviour
         if (emptyCells.Count == 0)
         {
             Debug.LogWarning("Невозможно сделать ход! Все ячейки заняты");
+            isProcessingMove = false;
             return;
         }
 
@@ -202,11 +216,13 @@ public class AIPlayer : MonoBehaviour
                 else
                 {
                     Debug.LogError("У ИИ нет карт!");
+                    isProcessingMove = false;
                     return;
                 }
             }
 
             PlaceCardOnCell(randomCard, bestFirstCell);
+            isProcessingMove = false;
             return;
         }
 
@@ -254,12 +270,14 @@ public class AIPlayer : MonoBehaviour
                 else
                 {
                     Debug.LogError("У ИИ нет карт!");
+                    isProcessingMove = false;
                     return;
                 }
             }
 
             PlaceCardOnCell(bestCard, bestCell);
         }
+        isProcessingMove = false;
     }
 
     private int EvaluateMove(Card card, AIGridCell cell)
@@ -331,12 +349,14 @@ public class AIPlayer : MonoBehaviour
         if (card == null)
         {
             Debug.LogError("Попытка разместить null-карту");
+            isProcessingMove = false;
             return;
         }
         
         if (cell == null)
         {
             Debug.LogError("Попытка разместить карту в null-ячейку");
+            isProcessingMove = false;
             return;
         }
         
@@ -347,6 +367,7 @@ public class AIPlayer : MonoBehaviour
             if (!aiCards.Contains(card))
             {
                 Debug.LogError($"Карты нет в списке доступных карт ИИ!");
+                isProcessingMove = false;
                 return;
             }
             
@@ -355,6 +376,7 @@ public class AIPlayer : MonoBehaviour
             {
                 Debug.LogError("GameObject карты равен null!");
                 aiCards.Remove(card); // Удаляем невалидную карту из списка
+                isProcessingMove = false;
                 return;
             }
             
@@ -413,6 +435,12 @@ public class AIPlayer : MonoBehaviour
                 aiCards.Remove(card);
                 Debug.Log("Проблемная карта удалена из списка");
             }
+            isProcessingMove = false;
+        }
+        finally
+        {
+            // Всегда сбрасываем флаг в конце
+            isProcessingMove = false;
         }
     }
 

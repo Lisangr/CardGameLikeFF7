@@ -24,11 +24,11 @@ public class DraggableCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         if (isDropped || isLocked || !CanDragCard()) return;
 
-        // Проверка на возможность перетаскивания в зависимости от текущего хода
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
         if ((card.isPlayer1Card && !ChangeTurn.IsPlayer1Turn) || (!card.isPlayer1Card && ChangeTurn.IsPlayer1Turn))
         {
-            Debug.Log("Не можете перетаскивать карту другого игрока.");
-            return; // Блокируем перетаскивание карты, если это не ход игрока
+            Debug.Log("пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.");
+            return; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         }
 
         cloneCard = Instantiate(gameObject, parentCanvas.transform);
@@ -53,16 +53,28 @@ public class DraggableCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     }
 
     public void OnDrag(PointerEventData eventData)
+{
+    if (isDropped || isLocked || !gameObject || !gameObject.activeInHierarchy) 
     {
-        if (isDropped || isLocked) return;
+        return;
+    }
 
-        // Проверка на возможность перетаскивания в зависимости от текущего хода
-        if ((card.isPlayer1Card && !ChangeTurn.IsPlayer1Turn) || (!card.isPlayer1Card && ChangeTurn.IsPlayer1Turn))
-        {
-            Debug.Log("Не можете перетаскивать карту другого игрока.");
-            return;
-        }
+    // РџСЂРѕРІРµСЂСЏРµРј, РЅРµ СѓРЅРёС‡С‚РѕР¶РµРЅ Р»Рё РѕР±СЉРµРєС‚
+    if (!cloneCard || !parentCanvas)
+    {
+        Debug.LogWarning("РџРѕРїС‹С‚РєР° РїРµСЂРµС‚Р°С‰РёС‚СЊ РєР°СЂС‚Сѓ СЃ СѓРЅРёС‡С‚РѕР¶РµРЅРЅС‹РјРё РѕР±СЉРµРєС‚Р°РјРё");
+        return;
+    }
 
+    // РџСЂРѕРІРµСЂСЏРµРј РЅР° РІРѕР·РјРѕР¶РЅРѕСЃС‚СЊ РїРµСЂРµС‚Р°СЃРєРёРІР°РЅРёСЏ РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ С‚РµРєСѓС‰РµРіРѕ С…РѕРґР°
+    if ((card.isPlayer1Card && !ChangeTurn.IsPlayer1Turn) || (!card.isPlayer1Card && ChangeTurn.IsPlayer1Turn))
+    {
+        Debug.Log("РќРµ РјРѕР¶РµС‚Рµ РїРµСЂРµС‚Р°СЃРєРёРІР°С‚СЊ РєР°СЂС‚С‹ РґСЂСѓРіРѕРіРѕ РёРіСЂРѕРєР°.");
+        return;
+    }
+
+    try
+    {
         RectTransformUtility.ScreenPointToWorldPointInRectangle(
             parentCanvas.transform as RectTransform,
             eventData.position,
@@ -71,6 +83,16 @@ public class DraggableCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
         cloneRectTransform.position = globalMousePos;
     }
+    catch (System.Exception e)
+    {
+        Debug.LogError($"РћС€РёР±РєР° РїСЂРё РїРµСЂРµС‚Р°СЃРєРёРІР°РЅРёРё РєР°СЂС‚С‹: {e.Message}");
+        if (cloneCard != null)
+        {
+            Destroy(cloneCard);
+            cloneCard = null;
+        }
+    }
+}
 
     public void OnEndDrag(PointerEventData eventData)
     {
@@ -81,14 +103,14 @@ public class DraggableCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
         if (isDropped || isLocked) return;
 
-        // Проверка на возможность перетаскивания в зависимости от текущего хода
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
         if ((card.isPlayer1Card && !ChangeTurn.IsPlayer1Turn) || (!card.isPlayer1Card && ChangeTurn.IsPlayer1Turn))
         {
-            Debug.Log("Не можете перетаскивать карту другого игрока.");
+            Debug.Log("пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.");
             return;
         }
 
-        // Удаляем карту из списка в CardManager
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ CardManager
     }
 
     public void LockCard()
@@ -104,15 +126,15 @@ public class DraggableCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
     private bool CanDragCard()
     {
-        // Проверка на то, чей ход, и к какому игроку относится карта
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅ, пїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         if (card.isPlayer1Card && !ChangeTurn.IsPlayer1Turn)
         {
-            Debug.Log("Игрок 1 не может перетаскивать карты во время хода игрока 2.");
+            Debug.Log("пїЅпїЅпїЅпїЅпїЅ 1 пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ 2.");
             return false;
         }
         if (!card.isPlayer1Card && ChangeTurn.IsPlayer1Turn)
         {
-            Debug.Log("Игрок 2 не может перетаскивать карты во время хода игрока 1.");
+            Debug.Log("пїЅпїЅпїЅпїЅпїЅ 2 пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ 1.");
             return false;
         }
         return true;

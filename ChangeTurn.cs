@@ -78,24 +78,47 @@ public class ChangeTurn : MonoBehaviour
         }
     }
 
-    public void SwitchTurn(Vector2Int playerPosition)
-    {
-        lastPlayerPosition = playerPosition;
-        SetTurn(!IsPlayer1Turn);
+    private bool isSwitchingTurn = false;
 
-        // Вызываем событие смены хода
-        if (OnTurnChanged != null)
+public void SwitchTurn(Vector2Int playerPosition)
+{
+    // Предотвращаем одновременное переключение ходов
+    if (isSwitchingTurn)
+    {
+        Debug.LogWarning("Попытка переключить ход, когда переключение уже выполняется!");
+        return;
+    }
+    
+    isSwitchingTurn = true;
+    
+    lastPlayerPosition = playerPosition;
+    SetTurn(!IsPlayer1Turn);
+
+    // Вызываем событие смены хода
+    if (OnTurnChanged != null)
+    {
+        try
         {
             OnTurnChanged.Invoke();
             Debug.Log($"Ход сменился. Сейчас ход игрока {(IsPlayer1Turn ? "1" : "2 (ИИ)")}");
         }
-
-        moveCount++;
-        if (moveCount >= maxMoves)
+        catch (System.Exception e)
         {
-            OnDeckEmpty?.Invoke();
+            Debug.LogError($"Ошибка при смене хода: {e.Message}");
         }
     }
+
+    moveCount++;
+    if (moveCount >= maxMoves)
+    {
+        if (OnDeckEmpty != null)
+        {
+            OnDeckEmpty.Invoke();
+        }
+    }
+    
+    isSwitchingTurn = false;
+}
 
     private void SetCardInteractability(CanvasGroup[] cardGroups, bool isInteractable)
     {
