@@ -15,6 +15,7 @@ public class AIPlayer : MonoBehaviour
     private Transform cardsParent; // Для хранения ссылки на родительский объект карт
 
     private bool isProcessingMove = false;
+    private bool isPlacingCard = false;
 
     private void Start()
     {
@@ -139,6 +140,23 @@ public class AIPlayer : MonoBehaviour
         if (emptyCells.Count == 0)
         {
             Debug.LogWarning("Невозможно сделать ход! Все ячейки заняты");
+            isProcessingMove = false;
+            return;
+        }
+
+        // Дополнительная проверка пустых ячеек
+        for (int i = emptyCells.Count - 1; i >= 0; i--)
+        {
+            if (emptyCells[i].HasCard())
+            {
+                Debug.LogError($"Ячейка {emptyCells[i].gridPosition} помечена как пустая, но содержит карту! Исключаем из списка.");
+                emptyCells.RemoveAt(i);
+            }
+        }
+
+        if (emptyCells.Count == 0)
+        {
+            Debug.LogWarning("После проверки не осталось пустых ячеек! Пропускаем ход.");
             isProcessingMove = false;
             return;
         }
@@ -360,9 +378,25 @@ public class AIPlayer : MonoBehaviour
             return;
         }
         
+        // Проверяем, не занята ли ячейка
+        if (cell.HasCard())
+        {
+            Debug.LogError($"Ячейка {cell.gridPosition} уже занята картой! Пропускаем размещение.");
+            isProcessingMove = false;
+            return;
+        }
+        
         try
         {
-            Debug.Log($"Размещаем карту ИИ: L:{card.leftValue} R:{card.rightValue} T:{card.topValue} B:{card.bottomValue}");
+            // Предотвращаем одновременные вызовы метода
+            if (isPlacingCard)
+            {
+                Debug.LogWarning("Уже выполняется размещение другой карты. Пропускаем.");
+                return;
+            }
+            isPlacingCard = true;
+            
+            Debug.Log($"Размещаем карту ИИ: L:{card.leftValue} R:{card.rightValue} T:{card.topValue} B:{card.bottomValue} в ячейку {cell.gridPosition}");
             
             if (!aiCards.Contains(card))
             {
@@ -413,7 +447,13 @@ public class AIPlayer : MonoBehaviour
             }
 
             // Устанавливаем ссылку на карту в ячейке
-            cell.currentCard = card;
+            if (!cell.SetCard(card))
+            {
+                Debug.LogError("Не удалось установить карту в ячейку, так как она уже занята!");
+                isPlacingCard = false;
+                isProcessingMove = false;
+                return;
+            }
 
             // Удаляем карту из списка доступных карт AI
             aiCards.Remove(card);
@@ -422,8 +462,18 @@ public class AIPlayer : MonoBehaviour
             // Сравниваем с соседями
             cell.CompareWithNeighbors(card);
 
-            // Передаем ход игроку
-            ChangeTurn.Instance.SwitchTurn(cell.gridPosition);
+            // Передаем ход игроку с дополнительной проверкой
+            if (ChangeTurn.Instance != null)
+            {
+                // Небольшая задержка перед сменой хода, чтобы все операции с картой завершились
+                StartCoroutine(SwitchTurnAfterDelay(cell.gridPosition, 0.1f));
+            }
+            else
+            {
+                Debug.LogError("ChangeTurn.Instance is null!");
+                isPlacingCard = false;
+                isProcessingMove = false;
+            }
         }
         catch (System.Exception e)
         {
@@ -435,12 +485,26 @@ public class AIPlayer : MonoBehaviour
                 aiCards.Remove(card);
                 Debug.Log("Проблемная карта удалена из списка");
             }
-            isProcessingMove = false;
         }
         finally
         {
-            // Всегда сбрасываем флаг в конце
+            isPlacingCard = false;
             isProcessingMove = false;
+        }
+    }
+
+    private System.Collections.IEnumerator SwitchTurnAfterDelay(Vector2Int position, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        
+        isPlacingCard = false;
+        isProcessingMove = false;
+        
+        // Проверяем, что до сих пор ход не был передан
+        if (!ChangeTurn.IsPlayer1Turn)
+        {
+            ChangeTurn.Instance.SwitchTurn(position);
+            Debug.Log("Ход передан игроку после задержки");
         }
     }
 

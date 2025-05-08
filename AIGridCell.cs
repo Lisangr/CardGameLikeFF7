@@ -12,40 +12,40 @@ public class AIGridCell : MonoBehaviour, IDropHandler
     public Vector2Int gridPosition;
     public Card currentCard;
 
-    // Цвета для лучшей визуализации
-    private Color playerColor;     // Голубой для карт игрока
-    private Color aiColor;         // Зеленый для карт ИИ
-    private Color neutralColor;    // Белый для нейтральных карт
+    // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    private Color playerColor;     // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+    private Color aiColor;         // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ
+    private Color neutralColor;    // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 
-    // Добавляем аналогичные события для подсчета захваченных карт
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
     public delegate void CounterForPlayer();
     public static event CounterForPlayer OnCardTookByPlayer1;
     public static event CounterForPlayer OnCardTookByPlayer2;
 
     void Start()
     {
-        // Устанавливаем новые, более наглядные цвета
-        if (!ColorUtility.TryParseHtmlString("#4FC3F7", out playerColor))  // Голубой для игрока
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+        if (!ColorUtility.TryParseHtmlString("#4FC3F7", out playerColor))  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         {
             Debug.LogError("Invalid color string for #4FC3F7");
             playerColor = Color.blue;
         }
 
-        if (!ColorUtility.TryParseHtmlString("#81C784", out aiColor))  // Зеленый для ИИ
+        if (!ColorUtility.TryParseHtmlString("#81C784", out aiColor))  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ
         {
             Debug.LogError("Invalid color string for #81C784");
             aiColor = Color.green;
         }
 
-        neutralColor = Color.white;  // Белый для нейтральных карт
+        neutralColor = Color.white;  // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
     }
 
     public void OnDrop(PointerEventData eventData)
     {
-        // Проверяем, что в ячейке еще нет карты
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         if (currentCard != null)
         {
-            Debug.LogWarning("Ячейка уже занята картой.");
+            Debug.LogWarning("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.");
             return;
         }
 
@@ -55,147 +55,147 @@ public class AIGridCell : MonoBehaviour, IDropHandler
         {
             DraggableCard draggableCard = droppedObject.GetComponent<DraggableCard>();
 
-            // Проверяем, принадлежит ли карта текущему игроку
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             if ((draggableCard.card.isPlayer1Card && !ChangeTurn.IsPlayer1Turn) ||
                 (!draggableCard.card.isPlayer1Card && ChangeTurn.IsPlayer1Turn))
             {
-                Debug.LogWarning("Нельзя положить карту другого игрока.");
+                Debug.LogWarning("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.");
                 return;
             }
 
-            // Размещаем карту в эту ячейку
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             droppedObject.transform.SetParent(transform);
             droppedObject.transform.localPosition = Vector3.zero;
 
-            // Сохраняем ссылку на карту
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             currentCard = draggableCard.card;
 
-            // Устанавливаем начальный цвет карты (нейтральный)
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
             SetInitialCardColor(draggableCard.card);
 
-            // Блокируем карту и меняем ход
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
             draggableCard.LockCard();
             ChangeTurn.Instance.SwitchTurn(gridPosition);
 
-            // Сравниваем карту с соседями
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             CompareWithNeighbors(draggableCard.card);
         }
     }
 
-    // Новый метод для установки начального цвета карты
+    // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     private void SetInitialCardColor(Card card)
     {
         Image cardImage = card.GetComponent<Image>();
         if (cardImage != null)
         {
-            cardImage.color = neutralColor; // Изначально карты нейтрального цвета
+            cardImage.color = neutralColor; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         }
     }
 
     public void CompareWithNeighbors(Card newCard)
     {
-        // С левым соседом
+        // пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         if (leftNeighbor != null && leftNeighbor.HasCard())
         {
             Card leftCard = leftNeighbor.GetCard();
-            // Для левого соседа мы сравниваем левое значение нашей карты с правым значением соседа
+            // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             if (CanBeatCard(newCard, leftCard, newCard.leftValue, leftCard.rightValue))
             {
                 if (!newCard.isPlayer1Card)
                 {
-                    leftNeighbor.ChangeCardColor(aiColor); // Зеленый для карт ИИ
+                    leftNeighbor.ChangeCardColor(aiColor); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ
                     OnCardTookByPlayer2?.Invoke();
-                    Debug.Log($"ИИ побил карту слева своим значением {newCard.leftValue} > {leftCard.rightValue}");
+                    Debug.Log($"пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ {newCard.leftValue} > {leftCard.rightValue}");
                 }
                 else
                 {
-                    leftNeighbor.ChangeCardColor(playerColor); // Голубой для карт игрока
+                    leftNeighbor.ChangeCardColor(playerColor); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                     OnCardTookByPlayer1?.Invoke();
                 }
             }
         }
 
-        // С правым соседом
+        // пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         if (rightNeighbor != null && rightNeighbor.HasCard())
         {
             Card rightCard = rightNeighbor.GetCard();
-            // Для правого соседа мы сравниваем правое значение нашей карты с левым значением соседа
+            // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             if (CanBeatCard(newCard, rightCard, newCard.rightValue, rightCard.leftValue))
             {
                 if (!newCard.isPlayer1Card)
                 {
-                    rightNeighbor.ChangeCardColor(aiColor); // Зеленый для карт ИИ
+                    rightNeighbor.ChangeCardColor(aiColor); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ
                     OnCardTookByPlayer2?.Invoke();
-                    Debug.Log($"ИИ побил карту справа своим значением {newCard.rightValue} > {rightCard.leftValue}");
+                    Debug.Log($"пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ {newCard.rightValue} > {rightCard.leftValue}");
                 }
                 else
                 {
-                    rightNeighbor.ChangeCardColor(playerColor); // Голубой для карт игрока
+                    rightNeighbor.ChangeCardColor(playerColor); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                     OnCardTookByPlayer1?.Invoke();
                 }
             }
         }
 
-        // С верхним соседом
+        // пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         if (topNeighbor != null && topNeighbor.HasCard())
         {
             Card topCard = topNeighbor.GetCard();
-            // ВАЖНО: Для верхнего соседа мы сравниваем верхнее значение нашей карты с нижним значением соседа
+            // пїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             if (CanBeatCard(newCard, topCard, newCard.bottomValue, topCard.topValue))
             {
                 if (!newCard.isPlayer1Card)
                 {
-                    topNeighbor.ChangeCardColor(aiColor); // Зеленый для карт ИИ
+                    topNeighbor.ChangeCardColor(aiColor); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ
                     OnCardTookByPlayer2?.Invoke();
-                    Debug.Log($"ИИ побил карту сверху своим значением {newCard.bottomValue} > {topCard.topValue}");
+                    Debug.Log($"пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ {newCard.bottomValue} > {topCard.topValue}");
                 }
                 else
                 {
-                    topNeighbor.ChangeCardColor(playerColor); // Голубой для карт игрока
+                    topNeighbor.ChangeCardColor(playerColor); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                     OnCardTookByPlayer1?.Invoke();
                 }
             }
         }
 
-        // С нижним соседом
+        // пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         if (bottomNeighbor != null && bottomNeighbor.HasCard())
         {
             Card bottomCard = bottomNeighbor.GetCard();
-            // ВАЖНО: Для нижнего соседа мы сравниваем нижнее значение нашей карты с верхним значением соседа
+            // пїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             if (CanBeatCard(newCard, bottomCard, newCard.topValue, bottomCard.bottomValue))
             {
                 if (!newCard.isPlayer1Card)
                 {
-                    bottomNeighbor.ChangeCardColor(aiColor); // Зеленый для карт ИИ
+                    bottomNeighbor.ChangeCardColor(aiColor); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ
                     OnCardTookByPlayer2?.Invoke();
-                    Debug.Log($"ИИ побил карту снизу своим значением {newCard.topValue} > {bottomCard.bottomValue}");
+                    Debug.Log($"пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ {newCard.topValue} > {bottomCard.bottomValue}");
                 }
                 else
                 {
-                    bottomNeighbor.ChangeCardColor(playerColor); // Голубой для карт игрока
+                    bottomNeighbor.ChangeCardColor(playerColor); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                     OnCardTookByPlayer1?.Invoke();
                 }
             }
         }
     }
 
-    // Метод для проверки, может ли карта захватить соседа
+    // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     private bool CanBeatCard(Card newCard, Card neighborCard, int newCardValue, int neighborCardValue)
     {
-        // Если карта уже захвачена (изменен цвет), пропускаем проверку, иначе проверяем карты одной команды
+        // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ), пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         bool wasBeaten = IsCardColored(neighborCard);
 
-        // Если карты обе от одного игрока и не было захвата
+        // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         if (newCard.isPlayer1Card == neighborCard.isPlayer1Card && !wasBeaten)
         {
             return false;
         }
 
-        // Сравниваем значения карт
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
         return newCardValue > neighborCardValue;
     }
 
-    // Проверяем, была ли карта уже захвачена
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     private bool IsCardColored(Card neighborCard)
     {
         Image neighborCardImage = neighborCard.GetComponent<Image>();
@@ -224,16 +224,16 @@ public class AIGridCell : MonoBehaviour, IDropHandler
             if (cardImage != null)
             {
                 Debug.Log($"Changing card color to {color}.");
-                cardImage.color = color; // Изменяем цвет карты
+                cardImage.color = color; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 
-                // Также обновляем isPlayer1Card свойство карты, чтобы отразить новую принадлежность
+                // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ isPlayer1Card пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if (color == playerColor)
                 {
-                    currentCard.isPlayer1Card = true; // Теперь это карта игрока
+                    currentCard.isPlayer1Card = true; // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                 }
                 else if (color == aiColor)
                 {
-                    currentCard.isPlayer1Card = false; // Теперь это карта ИИ
+                    currentCard.isPlayer1Card = false; // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ
                 }
             }
             else
@@ -245,5 +245,18 @@ public class AIGridCell : MonoBehaviour, IDropHandler
         {
             Debug.LogError("No card found in this cell!");
         }
+    }
+
+    public bool SetCard(Card card)
+    {
+        // Р•СЃР»Рё СЏС‡РµР№РєР° СѓР¶Рµ Р·Р°РЅСЏС‚Р°, РЅРµ РїРѕР·РІРѕР»СЏРµРј СѓСЃС‚Р°РЅРѕРІРёС‚СЊ РґСЂСѓРіСѓСЋ РєР°СЂС‚Сѓ
+        if (currentCard != null)
+        {
+            Debug.LogWarning($"РЇС‡РµР№РєР° {gridPosition} СѓР¶Рµ СЃРѕРґРµСЂР¶РёС‚ РєР°СЂС‚Сѓ! РџРѕРїС‹С‚РєР° СѓСЃС‚Р°РЅРѕРІРёС‚СЊ: L:{card.leftValue} R:{card.rightValue} T:{card.topValue} B:{card.bottomValue}");
+            return false;
+        }
+        
+        currentCard = card;
+        return true;
     }
 }
